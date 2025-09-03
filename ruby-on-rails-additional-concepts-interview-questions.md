@@ -3,37 +3,37 @@
 ## Table of Contents
 
 ### Additional Ruby & Rails Concepts
-- [43. Callback VS Observer](#43-callback-vs-observer)
-- [44. Resource VS Resources](#44-resource-vs-resources)
-- [45. Member VS Collection](#45-member-vs-collection)
-- [46. Mass-assignment](#46-mass-assignment)
-- [47. Eager loading VS Lazy loading](#47-eager-loading-vs-lazy-loading)
-- [48. Pure Object Oriented why?](#48-pure-object-oriented)
-- [49. Constructor in Ruby](#49-constructor-in-ruby)
-- [50. Include VS Require](#50-include-vs-require)
-- [51. Include VS Extends](#51-include-vs-extends)
-- [52. Require VS Load](#52-require-vs-load)
-- [53. attr_accessor VS attr_accessible](#53-attr_accessor-vs-attr_accessible)
-- [54. Polymorphic Association](#54-polymorphic-association)
-- [55. MySQL VS PostgreSQL](#55-mysql-vs-pg)
-- [56. form_for and form_tag](#56-form_for-vs-form_tag)
-- [57. All Associations](#57-all-associations)
-- [58. Web server and Application server](#58-web-server-vs-application-server)
-- [59. Helper](#59-helper)
-- [60. Module](#60-module)
-- [61. RVM](#61-rvm)
-- [62. Multiple Inheritance](#62-multiple-inheritance)
-- [63. OOPS concepts](#63-oops-concepts)
-- [64. Super](#64-super)
-- [65. Filters](#65-filters)
-- [66. String and Symbol (Memory basis)](#66-string-vs-symbol)
-- [67. ORM](#67-orm)
-- [68. Render VS Redirect](#68-render-vs-redirect)
-- [69. Session VS Cookies](#69-session-vs-cookies)
-- [70. Module VS Class](#70-module-vs-class)
-- [71. Access Control (Private, Protected, Public)](#71-access-control)
-- [72. Block, Proc, Lambda](#72-block-proc-lambda)
-- [73. Difference select, collect, map](#73-select-collect-map)
+- [Callback VS Observer](#callback-vs-observer)
+- [Resource VS Resources](#resource-vs-resources)
+- [Member VS Collection](#member-vs-collection)
+- [Mass-assignment](#mass-assignment)
+- [Eager loading VS Lazy loading](#eager-loading-vs-lazy-loading)
+- [Pure Object Oriented why?](#pure-object-oriented)
+- [Constructor in Ruby](#constructor-in-ruby)
+- [Include VS Require](#include-vs-require)
+- [Include VS Extends](#include-vs-extends)
+- [Require VS Load](#require-vs-load)
+- [attr_accessor VS attr_accessible](#attr_accessor-vs-attr_accessible)
+- [Polymorphic Association](#polymorphic-association)
+- [MySQL VS PostgreSQL](#mysql-vs-pg)
+- [form_for and form_tag](#form_for-vs-form_tag)
+- [All Associations](#all-associations)
+- [Web server and Application server](#web-server-vs-application-server)
+- [Helper](#helper)
+- [Module](#module)
+- [RVM](#rvm)
+- [Multiple Inheritance](#multiple-inheritance)
+- [OOPS concepts](#oops-concepts)
+- [Super](#super)
+- [Filters](#filters)
+- [String and Symbol (Memory basis)](#string-vs-symbol)
+- [ORM](#orm)
+- [Render VS Redirect](#render-vs-redirect)
+- [Session VS Cookies](#session-vs-cookies)
+- [Module VS Class](#module-vs-class)
+- [Access Control (Private, Protected, Public)](#access-control)
+- [Block, Proc, Lambda](#block-proc-lambda)
+- [Difference select, collect, map](#select-collect-map)
 
 ### Tips for Rails Interview Success
 - [Tips for Rails Interview Success](#tips-for-rails-interview-success)
@@ -49,7 +49,7 @@
 
 ## Additional Ruby & Rails Concepts
 
-### <a id="43-callback-vs-observer"></a>43. **Callback VS Observer**
+### <a id="callback-vs-observer"></a>**Callback VS Observer**
 ```ruby
 # Callbacks (ActiveRecord)
 class User < ApplicationRecord
@@ -85,7 +85,7 @@ config.active_record.observers = :user_observer
 - **Callbacks**: Simpler, but can make models bloated
 - **Observers**: Better separation of concerns, reusable
 
-### <a id="44-resource-vs-resources"></a>44. **Resource VS Resources**
+### <a id="resource-vs-resources"></a>**Resource VS Resources**
 ```ruby
 # config/routes.rb
 
@@ -116,7 +116,7 @@ resources :users do
 end
 ```
 
-### <a id="45-member-vs-collection"></a>45. **Member VS Collection**
+### <a id="member-vs-collection"></a>**Member VS Collection**
 ```ruby
 # config/routes.rb
 resources :users do
@@ -140,7 +140,7 @@ end
 - **Collection**: Acts on the entire collection (no specific ID)
 - **Member**: Acts on a specific member (requires ID)
 
-### <a id="46-mass-assignment"></a>46. **Mass-assignment**
+### <a id="mass-assignment"></a>**Mass-assignment**
 ```ruby
 # Mass assignment allows setting multiple attributes at once
 # BAD - Vulnerable to mass assignment attacks
@@ -173,7 +173,7 @@ def user_params
 end
 ```
 
-### <a id="47-eager-loading-vs-lazy-loading"></a>47. **Eager loading VS Lazy loading**
+### <a id="eager-loading-vs-lazy-loading"></a>**Eager loading VS Lazy loading**
 ```ruby
 # Lazy Loading (N+1 problem)
 users = User.all
@@ -196,7 +196,7 @@ User.eager_load(:profile)        # LEFT JOIN with conditions
 User.joins(:profile)             # INNER JOIN (no profile data)
 ```
 
-### <a id="48-pure-object-oriented"></a>48. **Pure Object Oriented why?**
+### <a id="pure-object-oriented"></a>**Pure Object Oriented why?**
 ```ruby
 # Ruby is a pure object-oriented language because:
 
@@ -227,7 +227,7 @@ my_proc = Proc.new { |x| x * 2 }
 puts my_proc.call(5)            # => 10
 ```
 
-### <a id="49-constructor-in-ruby"></a>49. **Constructor in Ruby**
+### <a id="constructor-in-ruby"></a>**Constructor in Ruby**
 ```ruby
 class User
   def initialize(name, email)
@@ -263,7 +263,7 @@ end
 user = User.new(name: "John", email: "john@example.com", age: 25)
 ```
 
-### <a id="50-include-vs-require"></a>50. **Include VS Require**
+### <a id="include-vs-require"></a>**Include VS Require**
 ```ruby
 # Require - loads a file/library
 require 'json'
@@ -293,7 +293,7 @@ class User < ApplicationRecord
 end
 ```
 
-### <a id="51-include-vs-extends"></a>51. **Include VS Extends**
+### <a id="include-vs-extends"></a>**Include VS Extends**
 ```ruby
 module MyModule
   def instance_method
@@ -317,21 +317,27 @@ MyClass.class_method             # => "I'm a class method"
 
 # Practical example
 module Timestampable
+  def self.included(base)
+    base.extend(ClassMethods)
+  end
+  
   def created_at
     @created_at ||= Time.current
+  end
+  
+  module ClassMethods
+    def recent
+      where('created_at > ?', 1.day.ago)
+    end
   end
 end
 
 class Post < ApplicationRecord
-  include Timestampable  # Instance methods
-end
-
-class User < ApplicationRecord
-  extend Timestampable   # Class methods
+  include Timestampable
 end
 ```
 
-### <a id="52-require-vs-load"></a>52. **Require VS Load**
+### <a id="require-vs-load"></a>**Require VS Load**
 ```ruby
 # Require - loads file only once, caches it
 require 'json'           # Loads json library
@@ -351,7 +357,7 @@ load 'config/routes.rb'
 load 'config/initializers/*.rb'
 ```
 
-### <a id="53-attr_accessor-vs-attr_accessible"></a>53. **attr_accessor VS attr_accessible**
+### <a id="attr_accessor-vs-attr_accessible"></a>**attr_accessor VS attr_accessible**
 ```ruby
 # attr_accessor - creates getter and setter methods
 class User
@@ -388,7 +394,7 @@ class UsersController < ApplicationController
 end
 ```
 
-### <a id="54-polymorphic-association"></a>54. **Polymorphic Association**
+### <a id="polymorphic-association"></a>**Polymorphic Association**
 ```ruby
 # Polymorphic associations allow a model to belong to more than one type of model
 
@@ -421,7 +427,7 @@ comment = Comment.find(1)
 comment.commentable  # Returns the associated Post or Photo object
 ```
 
-### <a id="55-mysql-vs-pg"></a>55. **MySQL VS PostgreSQL**
+### <a id="mysql-vs-pg"></a>**MySQL VS PostgreSQL**
 ```ruby
 # MySQL
 # Pros:
@@ -466,7 +472,7 @@ development:
   host: localhost
 ```
 
-### <a id="56-form_for-vs-form_tag"></a>56. **form_for VS form_tag**
+### <a id="form_for-vs-form_tag"></a>**form_for VS form_tag**
 ```ruby
 # form_for - for model-backed forms
 <%= form_for @user do |f| %>
@@ -495,7 +501,7 @@ development:
 <% end %>
 ```
 
-### <a id="57-all-associations"></a>57. **All Associations**
+### <a id="all-associations"></a>**All Associations**
 ```ruby
 # One-to-One
 class User < ApplicationRecord
@@ -556,7 +562,7 @@ class Category < ApplicationRecord
 end
 ```
 
-### <a id="58-web-server-vs-application-server"></a>58. **Web Server VS Application Server**
+### <a id="web-server-vs-application-server"></a>**Web Server VS Application Server**
 
 **Web Server** and **Application Server** are two different types of servers that work together to serve web applications. Understanding their roles is crucial for Rails deployment and architecture.
 
@@ -670,7 +676,7 @@ preload_app!
 - Load balancing across multiple app servers
 - Static content can be served from CDN
 
-### <a id="59-helper"></a>59. **Helper**
+### <a id="helper"></a>**Helper**
 ```ruby
 # Application helpers (app/helpers/application_helper.rb)
 module ApplicationHelper
@@ -715,7 +721,7 @@ end
 <%= user_status_badge(@user) %>
 ```
 
-### <a id="60-module"></a>60. **Module**
+### <a id="module"></a>**Module**
 ```ruby
 # Modules are containers for methods and constants
 # They provide namespacing and code organization
@@ -769,7 +775,7 @@ class Post < ApplicationRecord
 end
 ```
 
-### <a id="61-rvm"></a>61. **RVM (Ruby Version Manager)**
+### <a id="rvm"></a>**RVM (Ruby Version Manager)**
 ```ruby
 # RVM manages multiple Ruby versions and gemsets
 
@@ -816,7 +822,7 @@ rbenv global 3.2.0
 rbenv local 3.2.0  # Creates .ruby-version file
 ```
 
-### <a id="62-multiple-inheritance"></a>62. **Multiple Inheritance**
+### <a id="multiple-inheritance"></a>**Multiple Inheritance**
 ```ruby
 # Ruby doesn't support multiple inheritance directly
 # But provides mixins through modules
@@ -876,7 +882,7 @@ c.method  # => "B" (module methods override superclass methods)
 C.ancestors  # => [C, B, A, Object, Kernel, BasicObject]
 ```
 
-### <a id="63-oops-concepts"></a>63. **OOPS Concepts**
+### <a id="oops-concepts"></a>**OOPS Concepts**
 ```ruby
 # 1. Encapsulation - bundling data and methods
 class BankAccount
@@ -947,7 +953,7 @@ class EmailService
 end
 ```
 
-### <a id="64-super"></a>64. **Super**
+### <a id="super"></a>**Super**
 ```ruby
 # super calls the parent class method
 
@@ -999,7 +1005,7 @@ class Child < Parent
 end
 ```
 
-### <a id="65-filters"></a>65. **Filters**
+### <a id="filters"></a>**Filters**
 ```ruby
 # Filters (now called callbacks in Rails 5+)
 # They run before, after, or around controller actions
@@ -1050,7 +1056,7 @@ class PostsController < ApplicationController
 end
 ```
 
-### <a id="66-string-vs-symbol"></a>66. **String and Symbol (Memory basis)**
+### <a id="string-vs-symbol"></a>**String and Symbol (Memory basis)**
 ```ruby
 # Strings are mutable, Symbols are immutable
 # Symbols are more memory efficient
@@ -1098,7 +1104,7 @@ Benchmark.bm do |x|
 end
 ```
 
-### <a id="67-orm"></a>67. **ORM (Object-Relational Mapping)**
+### <a id="orm"></a>**ORM (Object-Relational Mapping)**
 ```ruby
 # ORM maps database tables to Ruby objects
 
@@ -1155,7 +1161,7 @@ class CreateUsers < ActiveRecord::Migration[7.0]
 end
 ```
 
-### <a id="68-render-vs-redirect"></a>68. **Render VS Redirect**
+### <a id="render-vs-redirect"></a>**Render VS Redirect**
 ```ruby
 # Render - renders a view template
 class UsersController < ApplicationController
@@ -1205,7 +1211,7 @@ end
 # - Additional HTTP request
 ```
 
-### <a id="69-session-vs-cookies"></a>69. **Session VS Cookies**
+### <a id="session-vs-cookies"></a>**Session VS Cookies**
 ```ruby
 # Cookies - stored on client side
 class ApplicationController < ActionController::Base
@@ -1267,7 +1273,7 @@ config.session_store :redis_store,
 # - More secure
 ```
 
-### <a id="70-module-vs-class"></a>70. **Module VS Class**
+### <a id="module-vs-class"></a>**Module VS Class**
 ```ruby
 # Class - can be instantiated, has inheritance
 class User
@@ -1325,7 +1331,7 @@ end
 # - Used for namespacing and mixins
 ```
 
-### <a id="71-access-control"></a>71. **Access Control (Private, Protected, Public)**
+### <a id="access-control"></a>**Access Control (Private, Protected, Public)**
 ```ruby
 class BankAccount
   def initialize(balance)
@@ -1387,7 +1393,7 @@ account1.deposit(100)  # Public method
 # account1.transfer_to(account2, 100)  # Protected method - error
 ```
 
-### <a id="72-block-proc-lambda"></a>72. **Block, Proc, Lambda**
+### <a id="block-proc-lambda"></a>**Block, Proc, Lambda**
 ```ruby
 # Block - anonymous code block
 [1, 2, 3, 4, 5].each { |num| puts num * 2 }
@@ -1458,7 +1464,7 @@ user_processor = ->(user) { puts "Processing #{user.name}" }
 process_users([1, 2, 3], user_processor)
 ```
 
-### <a id="73-select-collect-map"></a>73. **Difference select, collect, map**
+### <a id="select-collect-map"></a>**Difference select, collect, map**
 ```ruby
 # select - filters elements based on condition
 numbers = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]

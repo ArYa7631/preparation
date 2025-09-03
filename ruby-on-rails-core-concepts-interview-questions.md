@@ -3,37 +3,42 @@
 ## Table of Contents
 
 ### Additional Ruby & Rails Concepts
-- [43. Callback VS Observer](#43-callback-vs-observer)
-- [44. Resource VS Resources](#44-resource-vs-resources)
-- [45. Member VS Collection](#45-member-vs-collection)
-- [46. Mass-assignment](#46-mass-assignment)
-- [47. Eager loading VS Lazy loading](#47-eager-loading-vs-lazy-loading)
-- [48. Pure Object Oriented why?](#48-pure-object-oriented)
-- [49. Constructor in Ruby](#49-constructor-in-ruby)
-- [50. Include VS Require](#50-include-vs-require)
-- [51. Include VS Extends](#51-include-vs-extends)
-- [52. Require VS Load](#52-require-vs-load)
-- [53. attr_accessor VS attr_accessible](#53-attr_accessor-vs-attr_accessible)
-- [54. Polymorphic Association](#54-polymorphic-association)
-- [55. MySQL VS PostgreSQL](#55-mysql-vs-pg)
-- [56. form_for and form_tag](#56-form_for-vs-form_tag)
-- [57. All Associations](#57-all-associations)
-- [58. Web server and Application server](#58-web-server-vs-application-server)
-- [59. Helper](#59-helper)
-- [60. Module](#60-module)
-- [61. RVM](#61-rvm)
-- [62. Multiple Inheritance](#62-multiple-inheritance)
-- [63. OOPS concepts](#63-oops-concepts)
-- [64. Super](#64-super)
-- [65. Filters](#65-filters)
-- [66. String and Symbol (Memory basis)](#66-string-vs-symbol)
-- [67. ORM](#67-orm)
-- [68. Render VS Redirect](#68-render-vs-redirect)
-- [69. Session VS Cookies](#69-session-vs-cookies)
-- [70. Module VS Class](#70-module-vs-class)
-- [71. Access Control (Private, Protected, Public)](#71-access-control)
-- [72. Block, Proc, Lambda](#72-block-proc-lambda)
-- [73. Difference select, collect, map](#73-select-collect-map)
+- [Callback VS Observer](#callback-vs-observer)
+- [Resource VS Resources](#resource-vs-resources)
+- [Member VS Collection](#member-vs-collection)
+- [Mass-assignment](#mass-assignment)
+- [Eager loading VS Lazy loading](#eager-loading-vs-lazy-loading)
+- [Pure Object Oriented why?](#pure-object-oriented)
+- [Constructor in Ruby](#constructor-in-ruby)
+- [Include VS Require](#include-vs-require)
+- [Include VS Extends](#include-vs-extends)
+- [Require VS Load](#require-vs-load)
+- [attr_accessor VS attr_accessible](#attr-accessor-vs-attr-accessible)
+- [Polymorphic Association](#polymorphic-association)
+- [MySQL VS PostgreSQL](#mysql-vs-postgresql)
+- [form_for and form_tag](#form-for-vs-form-tag)
+- [All Associations](#all-associations)
+- [Single Table Inheritance (STI)](#single-table-inheritance)
+- [Self Join](#self-join)
+- [Web server and Application server](#web-server-vs-application-server)
+- [Helper](#helper)
+- [Module](#module)
+- [What is Mixing in Ruby?](#mixing-in-ruby)
+- [RVM](#rvm)
+- [Multiple Inheritance](#multiple-inheritance)
+- [OOPS concepts](#oops-concepts)
+- [Ruby Class Types and Top-level Class](#ruby-class-types-and-top-level-class)
+- [Super](#super)
+- [What is self in Ruby?](#self-in-ruby)
+- [Filters](#filters)
+- [String and Symbol (Memory basis)](#string-vs-symbol)
+- [ORM](#orm)
+- [Render VS Redirect](#render-vs-redirect)
+- [Session VS Cookies](#session-vs-cookies)
+- [Module VS Class](#module-vs-class)
+- [Access Control (Private, Protected, Public)](#access-control)
+- [Block, Proc, Lambda](#block-proc-lambda)
+- [Difference select, collect, map](#select-collect-map-difference)
 
 ### Tips for Rails Interview Success
 - [Tips for Rails Interview Success](#tips-for-rails-interview-success)
@@ -48,7 +53,7 @@
 
 ## Additional Ruby & Rails Concepts
 
-### <a id="43-callback-vs-observer"></a>43. **Callback VS Observer**
+### <a id="callback-vs-observer"></a>**Callback VS Observer**
 ```ruby
 # Callbacks (ActiveRecord)
 class User < ApplicationRecord
@@ -84,7 +89,7 @@ config.active_record.observers = :user_observer
 - **Callbacks**: Simpler, but can make models bloated
 - **Observers**: Better separation of concerns, reusable
 
-### <a id="44-resource-vs-resources"></a>44. **Resource VS Resources**
+### <a id="resource-vs-resources"></a>**Resource VS Resources**
 ```ruby
 # config/routes.rb
 
@@ -115,7 +120,7 @@ resources :users do
 end
 ```
 
-### <a id="45-member-vs-collection"></a>45. **Member VS Collection**
+### <a id="member-vs-collection"></a>**Member VS Collection**
 ```ruby
 # config/routes.rb
 resources :users do
@@ -139,7 +144,7 @@ end
 - **Collection**: Acts on the entire collection (no specific ID)
 - **Member**: Acts on a specific member (requires ID)
 
-### <a id="46-mass-assignment"></a>46. **Mass-assignment**
+### <a id="mass-assignment"></a>**Mass-assignment**
 ```ruby
 # Mass assignment allows setting multiple attributes at once
 # BAD - Vulnerable to mass assignment attacks
@@ -172,7 +177,7 @@ def user_params
 end
 ```
 
-### <a id="47-eager-loading-vs-lazy-loading"></a>47. **Eager loading VS Lazy loading**
+### <a id="eager-loading-vs-lazy-loading"></a>**Eager loading VS Lazy loading**
 ```ruby
 # Lazy Loading (N+1 problem)
 users = User.all
@@ -195,7 +200,7 @@ User.eager_load(:profile)        # LEFT JOIN with conditions
 User.joins(:profile)             # INNER JOIN (no profile data)
 ```
 
-### <a id="48-pure-object-oriented"></a>48. **Pure Object Oriented why?**
+### <a id="pure-object-oriented"></a>**Pure Object Oriented why?**
 ```ruby
 # Ruby is a pure object-oriented language because:
 
@@ -226,7 +231,7 @@ my_proc = Proc.new { |x| x * 2 }
 puts my_proc.call(5)            # => 10
 ```
 
-### <a id="49-constructor-in-ruby"></a>49. **Constructor in Ruby**
+### <a id="constructor-in-ruby"></a>**Constructor in Ruby**
 ```ruby
 class User
   def initialize(name, email)
@@ -262,7 +267,7 @@ end
 user = User.new(name: "John", email: "john@example.com", age: 25)
 ```
 
-### <a id="50-include-vs-require"></a>50. **Include VS Require**
+### <a id="include-vs-require"></a>**Include VS Require**
 ```ruby
 # Require - loads a file/library
 require 'json'
@@ -292,7 +297,7 @@ class User < ApplicationRecord
 end
 ```
 
-### <a id="51-include-vs-extends"></a>51. **Include VS Extends**
+### <a id="include-vs-extends"></a>**Include VS Extends**
 ```ruby
 module MyModule
   def instance_method
@@ -330,7 +335,7 @@ class User < ApplicationRecord
 end
 ```
 
-### <a id="52-require-vs-load"></a>52. **Require VS Load**
+### <a id="require-vs-load"></a>**Require VS Load**
 ```ruby
 # Require - loads file only once, caches it
 require 'json'           # Loads json library
@@ -350,7 +355,7 @@ load 'config/routes.rb'
 load 'config/initializers/*.rb'
 ```
 
-### <a id="53-attr_accessor-vs-attr_accessible"></a>53. **attr_accessor VS attr_accessible**
+### <a id="attr-accessor-vs-attr-accessible"></a>**attr_accessor VS attr_accessible**
 ```ruby
 # attr_accessor - creates getter and setter methods
 class User
@@ -387,7 +392,7 @@ class UsersController < ApplicationController
 end
 ```
 
-### <a id="54-polymorphic-association"></a>54. **Polymorphic Association**
+### <a id="polymorphic-association"></a>**Polymorphic Association**
 ```ruby
 # Polymorphic associations allow a model to belong to more than one type of model
 
@@ -420,7 +425,7 @@ comment = Comment.find(1)
 comment.commentable  # Returns the associated Post or Photo object
 ```
 
-### <a id="55-mysql-vs-pg"></a>55. **MySQL VS PostgreSQL**
+### <a id="mysql-vs-postgresql"></a>**MySQL VS PostgreSQL**
 ```ruby
 # MySQL
 # Pros:
@@ -465,7 +470,7 @@ development:
   host: localhost
 ```
 
-### <a id="56-form_for-vs-form_tag"></a>56. **form_for VS form_tag**
+### <a id="form-for-vs-form-tag"></a>**form_for VS form_tag**
 ```ruby
 # form_for - for model-backed forms
 <%= form_for @user do |f| %>
@@ -494,7 +499,7 @@ development:
 <% end %>
 ```
 
-### <a id="57-all-associations"></a>57. **All Associations**
+### <a id="all-associations"></a>**All Associations**
 ```ruby
 # One-to-One
 class User < ApplicationRecord
@@ -555,7 +560,244 @@ class Category < ApplicationRecord
 end
 ```
 
-### <a id="58-web-server-vs-application-server"></a>58. **Web Server VS Application Server**
+### <a id="single-table-inheritance"></a>**Single Table Inheritance (STI)**
+```ruby
+# STI allows you to store different types of objects in the same database table
+# The table has a 'type' column that determines which class the record belongs to
+
+# Base class
+class Vehicle < ApplicationRecord
+  # This will be stored in the 'vehicles' table
+  # The 'type' column will store the class name
+end
+
+# Subclasses
+class Car < Vehicle
+  # Stored in 'vehicles' table with type = 'Car'
+  # Can have car-specific methods and validations
+  def start_engine
+    "Car engine started"
+  end
+end
+
+class Motorcycle < Vehicle
+  # Stored in 'vehicles' table with type = 'Motorcycle'
+  def start_engine
+    "Motorcycle engine started"
+  end
+end
+
+class Bicycle < Vehicle
+  # Stored in 'vehicles' table with type = 'Bicycle'
+  def start_engine
+    "Bicycles don't have engines!"
+  end
+end
+
+# Database schema (vehicles table)
+# id | type        | name     | color  | engine_size | created_at | updated_at
+# 1  | Car         | Honda    | Red    | 2.0L        | 2024-01-01 | 2024-01-01
+# 2  | Motorcycle  | Yamaha   | Blue   | 600cc       | 2024-01-01 | 2024-01-01
+# 3  | Bicycle     | Trek     | Green  | NULL        | 2024-01-01 | 2024-01-01
+
+# Usage
+car = Car.create(name: "Honda", color: "Red", engine_size: "2.0L")
+motorcycle = Motorcycle.create(name: "Yamaha", color: "Blue", engine_size: "600cc")
+bicycle = Bicycle.create(name: "Trek", color: "Green")
+
+# Querying
+Vehicle.all                    # Returns all vehicles (Car, Motorcycle, Bicycle)
+Car.all                       # Returns only cars
+Motorcycle.all                # Returns only motorcycles
+Bicycle.all                   # Returns only bicycles
+
+# Polymorphic behavior
+vehicles = Vehicle.all
+vehicles.each { |v| puts v.start_engine }
+# Output:
+# Car engine started
+# Motorcycle engine started
+# Bicycles don't have engines!
+```
+
+**Key Benefits:**
+- **Single table**: All related data in one place
+- **Polymorphic queries**: Can query all vehicles or specific types
+- **Inheritance**: Subclasses inherit from base class
+- **Type safety**: Rails automatically handles type casting
+
+**When to Use STI:**
+- Subclasses share most attributes
+- Simple inheritance hierarchy
+- Need to query across all types
+- Limited number of subclasses
+
+**When NOT to Use STI:**
+- Subclasses have many different attributes
+- Complex inheritance hierarchies
+- Performance issues with large tables
+- Need different validations per type
+
+**Alternative: Polymorphic Associations**
+```ruby
+# Instead of STI, you could use separate tables with polymorphic associations
+class Vehicle < ApplicationRecord
+  belongs_to :vehicleable, polymorphic: true
+end
+
+class Car < ApplicationRecord
+  has_one :vehicle, as: :vehicleable
+end
+
+class Motorcycle < ApplicationRecord
+  has_one :vehicle, as: :vehicleable
+end
+```
+
+### <a id="self-join"></a>**Self Join**
+```ruby
+# Self Join allows a table to join with itself
+# Useful for hierarchical data, organizational structures, and self-referential relationships
+
+# Example 1: Employee-Manager Relationship
+class Employee < ApplicationRecord
+  belongs_to :manager, class_name: 'Employee', optional: true
+  has_many :subordinates, class_name: 'Employee', foreign_key: 'manager_id'
+end
+
+# Database schema (employees table)
+# id | name      | manager_id | department | created_at | updated_at
+# 1  | John CEO  | NULL       | Executive  | 2024-01-01 | 2024-01-01
+# 2  | Sarah     | 1          | Marketing  | 2024-01-01 | 2024-01-01
+# 3  | Mike      | 1          | Engineering| 2024-01-01 | 2024-01-01
+# 4  | Lisa      | 2          | Marketing  | 2024-01-01 | 2024-01-01
+# 5  | Tom       | 3          | Engineering| 2024-01-01 | 2024-01-01
+
+# Usage
+john = Employee.find(1)  # CEO
+john.subordinates         # Returns Sarah and Mike
+john.manager             # Returns nil (no manager)
+
+sarah = Employee.find(2) # Marketing Manager
+sarah.manager            # Returns John (CEO)
+sarah.subordinates       # Returns Lisa
+
+# Querying with self joins
+# Find all employees with their managers
+Employee.joins(:manager).select('employees.*, managers_employees.name as manager_name')
+
+# Find all managers and count their subordinates
+Employee.joins(:subordinates)
+       .group('employees.id')
+       .select('employees.*, COUNT(subordinates_employees.id) as subordinate_count')
+
+# Example 2: Category Hierarchy
+class Category < ApplicationRecord
+  belongs_to :parent, class_name: 'Category', optional: true
+  has_many :children, class_name: 'Category', foreign_key: 'parent_id'
+  
+  # Find root categories (no parent)
+  scope :roots, -> { where(parent_id: nil) }
+  
+  # Find leaf categories (no children)
+  scope :leaves, -> { left_joins(:children).where(children_categories: { id: nil }) }
+end
+
+# Database schema (categories table)
+# id | name           | parent_id | created_at | updated_at
+# 1  | Electronics    | NULL      | 2024-01-01 | 2024-01-01
+# 2  | Computers      | 1         | 2024-01-01 | 2024-01-01
+# 3  | Laptops        | 2         | 2024-01-01 | 2024-01-01
+# 4  | Smartphones    | 1         | 2024-01-01 | 2024-01-01
+# 5  | Clothing       | NULL      | 2024-01-01 | 2024-01-01
+# 6  | Men's Wear     | 5         | 2024-01-01 | 2024-01-01
+
+# Usage
+electronics = Category.find(1)
+electronics.children        # Returns Computers and Smartphones
+electronics.parent          # Returns nil (root category)
+
+computers = Category.find(2)
+computers.children         # Returns Laptops
+computers.parent           # Returns Electronics
+
+# Find all categories with their parent names
+Category.joins(:parent).select('categories.*, parents_categories.name as parent_name')
+
+# Example 3: User Following System
+class User < ApplicationRecord
+  has_many :follows, class_name: 'Follow', foreign_key: 'follower_id'
+  has_many :followers, class_name: 'Follow', foreign_key: 'following_id'
+  
+  has_many :following, through: :follows, source: :following
+  has_many :followers_list, through: :followers, source: :follower
+end
+
+class Follow < ApplicationRecord
+  belongs_to :follower, class_name: 'User'
+  belongs_to :following, class_name: 'User'
+end
+
+# Database schema (follows table)
+# id | follower_id | following_id | created_at
+# 1  | 1           | 2            | 2024-01-01
+# 2  | 1           | 3            | 2024-01-01
+# 3  | 2           | 1            | 2024-01-01
+# 4  | 3           | 1            | 2024-01-01
+
+# Usage
+user1 = User.find(1)
+user1.following           # Users that user1 follows
+user1.followers_list      # Users following user1
+
+# Find mutual followers
+User.joins(:follows)
+    .joins('INNER JOIN follows f2 ON follows.following_id = f2.follower_id')
+    .where('follows.follower_id = f2.following_id')
+```
+
+**Key Benefits:**
+- **Hierarchical data**: Perfect for organizational structures
+- **Self-referential relationships**: Tables can reference themselves
+- **Flexible queries**: Can traverse relationships in multiple directions
+- **Efficient storage**: Single table for related entities
+
+**Common Use Cases:**
+- **Employee hierarchies** (manager-subordinate relationships)
+- **Category trees** (parent-child categories)
+- **Social networks** (user following systems)
+- **File systems** (folder structures)
+- **Comment threads** (nested comments)
+
+**Performance Considerations:**
+- **Index foreign keys** for better join performance
+- **Limit depth** of hierarchical queries
+- **Consider materialized paths** for deep hierarchies
+- **Use recursive CTEs** for complex tree traversals
+
+**Alternative Approaches:**
+```ruby
+# 1. Nested Sets (for read-heavy hierarchies)
+class Category < ApplicationRecord
+  scope :ordered, -> { order(:lft) }
+end
+
+# 2. Materialized Paths
+class Category < ApplicationRecord
+  def ancestors
+    return [] if path.blank?
+    Category.where(id: path.split('/'))
+  end
+end
+
+# 3. Closure Tables (for complex hierarchies)
+class CategoryHierarchy < ApplicationRecord
+  belongs_to :ancestor, class_name: 'Category'
+  belongs_to :descendant, class_name: 'Category'
+end
+```
+
+### <a id="web-server-vs-application-server"></a>**Web Server VS Application Server**
 ```ruby
 # Web Server (e.g., Nginx, Apache)
 # - Serves static files (CSS, JS, images)
@@ -601,7 +843,7 @@ port ENV.fetch("PORT") { 3000 }
 environment ENV.fetch("RAILS_ENV") { "development" }
 ```
 
-### <a id="59-helper"></a>59. **Helper**
+### <a id="helper"></a>**Helper**
 ```ruby
 # Application helpers (app/helpers/application_helper.rb)
 module ApplicationHelper
@@ -646,7 +888,7 @@ end
 <%= user_status_badge(@user) %>
 ```
 
-### <a id="60-module"></a>60. **Module**
+### <a id="module"></a>**Module**
 ```ruby
 # Modules are containers for methods and constants
 # They provide namespacing and code organization
@@ -700,7 +942,317 @@ class Post < ApplicationRecord
 end
 ```
 
-### <a id="61-rvm"></a>61. **RVM (Ruby Version Manager)**
+### <a id="mixing-in-ruby"></a>**What is Mixing in Ruby?**
+
+**Q: What is mixing in Ruby?**
+
+Mixing in Ruby refers to the process of including modules into classes to add functionality without using inheritance. It's a way to share code between classes that don't have a natural inheritance relationship, providing a form of multiple inheritance through composition.
+
+```ruby
+# Basic mixin example
+module Searchable
+  def search(query)
+    where("name LIKE ?", "%#{query}%")
+  end
+  
+  def search_by_email(email)
+    where("email LIKE ?", "%#{email}%")
+  end
+end
+
+module Validatable
+  def valid_email?
+    email =~ /\A[\w+\-.]+@[a-z\d\-]+(\.[a-z\d\-]+)*\.[a-z]+\z/i
+  end
+  
+  def valid_phone?
+    phone =~ /\A\+?[\d\s\-\(\)]{10,}\z/
+  end
+end
+
+# Mixing modules into classes
+class User < ApplicationRecord
+  include Searchable    # Adds search methods as instance methods
+  include Validatable   # Adds validation methods as instance methods
+end
+
+class Company < ApplicationRecord
+  include Searchable    # Same search functionality
+  include Validatable   # Same validation functionality
+end
+
+# Usage
+user = User.new
+user.search("john")           # Method from Searchable module
+user.valid_email?             # Method from Validatable module
+
+company = Company.new
+company.search("tech")        # Same search method
+company.valid_phone?          # Same validation method
+```
+
+**How Mixing Works:**
+
+1. **Include** - Adds module methods as instance methods
+```ruby
+module Greetable
+  def greet(name)
+    "Hello, #{name}!"
+  end
+  
+  def farewell(name)
+    "Goodbye, #{name}!"
+  end
+end
+
+class Person
+  include Greetable
+end
+
+class Robot
+  include Greetable
+end
+
+person = Person.new
+robot = Robot.new
+
+person.greet("Alice")     # => "Hello, Alice!"
+robot.farewell("Bob")     # => "Goodbye, Bob!"
+```
+
+2. **Extend** - Adds module methods as class methods
+```ruby
+module FactoryMethods
+  def create_admin
+    new(role: 'admin')
+  end
+  
+  def create_guest
+    new(role: 'guest')
+  end
+end
+
+class User < ApplicationRecord
+  extend FactoryMethods
+end
+
+# Usage - these are class methods
+admin = User.create_admin
+guest = User.create_guest
+```
+
+3. **Prepend** - Inserts module methods before the class in method lookup chain
+```ruby
+module Logging
+  def save
+    puts "Logging before save..."
+    super
+    puts "Logging after save..."
+  end
+end
+
+class Document < ApplicationRecord
+  prepend Logging
+  
+  def save
+    puts "Saving document..."
+    super
+  end
+end
+
+# Method lookup order: Logging -> Document -> ApplicationRecord
+doc = Document.new
+doc.save
+# Output:
+# Logging before save...
+# Saving document...
+# Logging after save...
+```
+
+**Advanced Mixin Patterns:**
+
+1. **Module with Class Methods**
+```ruby
+module Timestampable
+  def self.included(base)
+    base.extend(ClassMethods)
+  end
+  
+  def created_at
+    @created_at ||= Time.current
+  end
+  
+  module ClassMethods
+    def recent
+      where('created_at > ?', 1.day.ago)
+    end
+    
+    def old
+      where('created_at < ?', 1.day.ago)
+    end
+  end
+end
+
+class Post < ApplicationRecord
+  include Timestampable
+end
+
+# Instance methods
+post = Post.new
+post.created_at
+
+# Class methods
+Post.recent
+Post.old
+```
+
+2. **Conditional Mixins**
+```ruby
+module Cacheable
+  def self.included(base)
+    if base.respond_to?(:cache_key)
+      base.extend(CacheMethods)
+    end
+  end
+  
+  module CacheMethods
+    def cached_find(id)
+      Rails.cache.fetch("model:#{cache_key}:#{id}") do
+        find(id)
+      end
+    end
+  end
+end
+
+class User < ApplicationRecord
+  include Cacheable
+end
+```
+
+3. **Module Composition**
+```ruby
+module Authenticatable
+  def authenticate(password)
+    # authentication logic
+  end
+end
+
+module Authorizable
+  def authorize(action)
+    # authorization logic
+  end
+end
+
+module UserFeatures
+  include Authenticatable
+  include Authorizable
+  
+  def profile_complete?
+    # profile logic
+  end
+end
+
+class User < ApplicationRecord
+  include UserFeatures
+end
+```
+
+**Method Resolution Order (MRO):**
+
+```ruby
+module A
+  def method
+    "A"
+  end
+end
+
+module B
+  def method
+    "B"
+  end
+end
+
+class C
+  include A
+  include B
+end
+
+c = C.new
+c.method  # => "B" (last included module wins)
+
+# Check method resolution order
+C.ancestors  # => [C, B, A, Object, Kernel, BasicObject]
+```
+
+**Benefits of Mixing:**
+
+1. **Code Reuse**: Share functionality across multiple classes
+2. **Multiple Inheritance**: Achieve multiple inheritance-like behavior
+3. **Separation of Concerns**: Keep related functionality in separate modules
+4. **Flexibility**: Mix and match functionality as needed
+5. **Testing**: Test modules independently
+6. **Maintenance**: Update functionality in one place
+
+**When to Use Mixins:**
+
+- **Use mixins when**:
+  - Multiple classes need the same functionality
+  - Classes don't have a natural inheritance relationship
+  - You want to avoid deep inheritance hierarchies
+  - Functionality is optional or configurable
+
+- **Avoid mixins when**:
+  - Classes have a natural inheritance relationship
+  - Functionality is tightly coupled to the class
+  - You need to override many methods from the module
+
+**Common Mixin Use Cases:**
+
+1. **Rails Concerns**: Rails-specific mixins for models and controllers
+2. **Utility Modules**: Common functionality like search, validation, logging
+3. **Interface Modules**: Define contracts that classes must implement
+4. **Trait Modules**: Add specific behaviors to classes
+5. **Plugin Modules**: Extend functionality without modifying existing code
+
+**Rails Concerns Example:**
+
+```ruby
+# app/models/concerns/searchable.rb
+module Searchable
+  extend ActiveSupport::Concern
+  
+  included do
+    scope :search, ->(query) { where("name LIKE ?", "%#{query}%") }
+  end
+  
+  class_methods do
+    def search_by_email(email)
+      where("email LIKE ?", "%#{email}%")
+    end
+  end
+end
+
+# app/models/user.rb
+class User < ApplicationRecord
+  include Searchable
+end
+
+# Usage
+User.search("john")
+User.search_by_email("john@example.com")
+```
+
+**Key Points:**
+
+- **Include**: Adds instance methods (most common)
+- **Extend**: Adds class methods
+- **Prepend**: Inserts methods before class in lookup chain
+- **Method Resolution**: Last included module wins in conflicts
+- **Self.included**: Hook for extending including class
+- **Rails Concerns**: Rails-specific way to organize mixins
+- **Composition over Inheritance**: Mixins promote composition
+
+### <a id="rvm"></a>**RVM (Ruby Version Manager)**
 ```ruby
 # RVM manages multiple Ruby versions and gemsets
 
@@ -747,7 +1299,7 @@ rbenv global 3.2.0
 rbenv local 3.2.0  # Creates .ruby-version file
 ```
 
-### <a id="62-multiple-inheritance"></a>62. **Multiple Inheritance**
+### <a id="multiple-inheritance"></a>**Multiple Inheritance**
 ```ruby
 # Ruby doesn't support multiple inheritance directly
 # But provides mixins through modules
@@ -807,7 +1359,7 @@ c.method  # => "B" (module methods override superclass methods)
 C.ancestors  # => [C, B, A, Object, Kernel, BasicObject]
 ```
 
-### <a id="63-oops-concepts"></a>63. **OOPS Concepts**
+### <a id="oops-concepts"></a>**OOPS Concepts**
 ```ruby
 # 1. Encapsulation - bundling data and methods
 class BankAccount
@@ -842,6 +1394,48 @@ class Dog < Animal
     "Woof!"
   end
 end
+
+### <a id="ruby-class-types-and-top-level-class"></a>**Ruby Class Types and Top-level Class**
+
+**Q: How many types of classes are there in Ruby, and what is the top-level class?**
+
+In Ruby, there are several types of classes:
+
+1. **Regular Classes** - User-defined classes
+2. **Built-in Classes** - String, Array, Hash, Integer, etc.
+3. **Singleton Classes** - Anonymous classes for individual objects
+4. **Metaclasses** - Classes that define other classes
+
+**Top-level Class: Object**
+
+Every class in Ruby (except BasicObject) inherits from the `Object` class, making it the top-level class in Ruby's inheritance hierarchy:
+
+```ruby
+# Class hierarchy
+class MyClass
+end
+
+MyClass.superclass                    # => Object
+MyClass.superclass.superclass         # => BasicObject
+MyClass.superclass.superclass.superclass  # => nil
+
+# All objects inherit from Object
+"hello".class.superclass              # => Object
+[1,2,3].class.superclass             # => Object
+123.class.superclass                  # => Object
+
+# Object provides common methods
+obj = Object.new
+obj.class                             # => Object
+obj.object_id                         # => 123456
+obj.to_s                              # => "#<Object:0x...>"
+```
+
+**Key Points:**
+- `Object` is the default superclass for all classes
+- `BasicObject` is the root class (minimal interface)
+- `Object` includes the `Kernel` module, providing most built-in methods
+- Custom classes automatically inherit from `Object` unless specified otherwise
 
 # 3. Polymorphism - same interface, different behavior
 class Cat < Animal
@@ -878,7 +1472,7 @@ class EmailService
 end
 ```
 
-### <a id="64-super"></a>64. **Super**
+### <a id="super"></a>**Super**
 ```ruby
 # super calls the parent class method
 
@@ -930,7 +1524,155 @@ class Child < Parent
 end
 ```
 
-### <a id="65-filters"></a>65. **Filters**
+### <a id="self-in-ruby"></a>**What is self in Ruby?**
+
+**Q: What is self in Ruby?**
+
+`self` is a special keyword in Ruby that refers to the current object - the object that is receiving the current method call. It's a way to reference the current instance within its own methods.
+
+```ruby
+class User
+  attr_accessor :name, :email
+  
+  def initialize(name, email)
+    self.name = name    # self refers to the current User instance
+    self.email = email  # self refers to the current User instance
+  end
+  
+  def display_info
+    puts "Name: #{self.name}"    # self.name is the same as @name
+    puts "Email: #{self.email}"  # self.email is the same as @email
+  end
+  
+  def update_email(new_email)
+    self.email = new_email       # self refers to the current instance
+  end
+  
+  def self.class_method
+    "This is a class method"     # self refers to the User class itself
+  end
+  
+  def instance_method
+    "self.class: #{self.class}"  # Shows the class of current instance
+    "self.object_id: #{self.object_id}"  # Shows the object ID
+  end
+end
+
+# Usage
+user = User.new("John", "john@example.com")
+user.display_info
+user.update_email("newjohn@example.com")
+
+# Class method
+puts User.class_method
+```
+
+**Different contexts where self is used:**
+
+1. **Instance Methods** - `self` refers to the instance
+```ruby
+class Product
+  def initialize(name, price)
+    @name = name
+    @price = price
+  end
+  
+  def display
+    puts "Product: #{self.name}, Price: #{self.price}"
+  end
+  
+  def name
+    @name
+  end
+  
+  def price
+    @price
+  end
+end
+```
+
+2. **Class Methods** - `self` refers to the class
+```ruby
+class Order
+  def self.find_by_user(user_id)
+    # self refers to Order class
+    where(user_id: user_id)
+  end
+  
+  def self.total_count
+    # self refers to Order class
+    count
+  end
+end
+
+# Usage
+Order.find_by_user(123)  # self is Order class
+Order.total_count         # self is Order class
+```
+
+3. **Module Methods** - `self` refers to the module
+```ruby
+module Searchable
+  def self.search(query)
+    # self refers to Searchable module
+    where("name LIKE ?", "%#{query}%")
+  end
+end
+```
+
+4. **Assignment Methods** - `self` is required to avoid local variable creation
+```ruby
+class Person
+  attr_accessor :name
+  
+  def set_name(name)
+    self.name = name    # Without self, this would create a local variable
+    # name = name       # This would NOT set the instance variable
+  end
+end
+```
+
+5. **Private Methods** - `self` cannot be used with explicit receiver
+```ruby
+class Calculator
+  def add(a, b)
+    result = a + b
+    log_result(result)  # Can call private method without self
+    result
+  end
+  
+  private
+  
+  def log_result(result)
+    puts "Result: #{result}"
+  end
+  
+  # This would cause an error:
+  # def add_with_logging(a, b)
+  #   result = a + b
+  #   self.log_result(result)  # Error: private method called
+  # end
+end
+```
+
+**Key Points about self:**
+
+- **Instance Methods**: `self` refers to the current instance
+- **Class Methods**: `self` refers to the class itself
+- **Assignment**: `self` is required for setter methods to avoid local variable creation
+- **Private Methods**: `self` cannot be used as an explicit receiver
+- **Dynamic**: `self` changes based on the context where it's used
+- **Implicit**: In most cases, `self` can be omitted (e.g., `name` instead of `self.name`)
+
+**Common Use Cases:**
+
+1. **Disambiguation**: When you need to be explicit about instance vs local variables
+2. **Assignment**: Setting instance variables through accessor methods
+3. **Class Methods**: Defining methods on the class itself
+4. **Method Chaining**: Building fluent interfaces
+5. **Debugging**: Understanding which object is receiving the method call
+
+### <a id="filters"></a>**Filters**
 ```ruby
 # Filters (now called callbacks in Rails 5+)
 # They run before, after, or around controller actions
@@ -981,7 +1723,7 @@ class PostsController < ApplicationController
 end
 ```
 
-### <a id="66-string-vs-symbol"></a>66. **String and Symbol (Memory basis)**
+### <a id="string-vs-symbol"></a>**String and Symbol (Memory basis)**
 ```ruby
 # Strings are mutable, Symbols are immutable
 # Symbols are more memory efficient
@@ -1029,7 +1771,7 @@ Benchmark.bm do |x|
 end
 ```
 
-### <a id="67-orm"></a>67. **ORM (Object-Relational Mapping)**
+### <a id="orm"></a>**ORM (Object-Relational Mapping)**
 ```ruby
 # ORM maps database tables to Ruby objects
 
@@ -1086,7 +1828,7 @@ class CreateUsers < ActiveRecord::Migration[7.0]
 end
 ```
 
-### <a id="68-render-vs-redirect"></a>68. **Render VS Redirect**
+### <a id="render-vs-redirect"></a>**Render VS Redirect**
 ```ruby
 # Render - renders a view template
 class UsersController < ApplicationController
@@ -1136,7 +1878,7 @@ end
 # - Additional HTTP request
 ```
 
-### <a id="69-session-vs-cookies"></a>69. **Session VS Cookies**
+### <a id="session-vs-cookies"></a>**Session VS Cookies**
 ```ruby
 # Cookies - stored on client side
 class ApplicationController < ActionController::Base
@@ -1198,7 +1940,7 @@ config.session_store :redis_store,
 # - More secure
 ```
 
-### <a id="70-module-vs-class"></a>70. **Module VS Class**
+### <a id="module-vs-class"></a>**Module VS Class**
 ```ruby
 # Class - can be instantiated, has inheritance
 class User
@@ -1256,7 +1998,7 @@ end
 # - Used for namespacing and mixins
 ```
 
-### <a id="71-access-control"></a>71. **Access Control (Private, Protected, Public)**
+### <a id="access-control"></a>**Access Control (Private, Protected, Public)**
 ```ruby
 class BankAccount
   def initialize(balance)
@@ -1318,7 +2060,7 @@ account1.deposit(100)  # Public method
 # account1.transfer_to(account2, 100)  # Protected method - error
 ```
 
-### <a id="72-block-proc-lambda"></a>72. **Block, Proc, Lambda**
+### <a id="block-proc-lambda"></a>**Block, Proc, Lambda**
 ```ruby
 # Block - anonymous code block
 [1, 2, 3, 4, 5].each { |num| puts num * 2 }
@@ -1389,7 +2131,7 @@ user_processor = ->(user) { puts "Processing #{user.name}" }
 process_users([1, 2, 3], user_processor)
 ```
 
-### <a id="73-select-collect-map"></a>73. **Difference select, collect, map**
+### <a id="select-collect-map-difference"></a>**Difference select, collect, map**
 ```ruby
 # select - filters elements based on condition
 numbers = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]

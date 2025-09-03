@@ -37,10 +37,16 @@ I'm a Lead Engineer with 6+ years of experience in React.js and 4.5+ years in Ru
 ## Professional Experience
 
 ### Current Role
-**Position:** [Your current job title]
-**Company:** [Company name]
-**Duration:** [How long you've been there]
-**Key Responsibilities:**
-- [Responsibility 1]
-- [Responsibility 2]
-- [Responsibility 3]
+**Position:** Lead Engineer
+**Company:** HCLTech
+**Duration:** 2+ years now
+
+So in my current role as Lead Engineer at HCLTech, I'm working on this really exciting project for Highspot. What we're doing is building multiple microservices - some using Next.js for the frontend parts and Rails for the backend APIs. It's been a great learning experience because each microservice has its own challenges and requirements.
+
+One of the things I'm most proud of is setting up our testing strategy from scratch. We use TestCafe for our end-to-end testing, RSpec for all our Rails backend testing, and React Testing Library for our frontend components. Having this comprehensive testing setup has really given our team confidence when we're pushing new features or making changes.
+
+I also spend a good amount of time mentoring our junior developers. You know, helping them understand best practices, reviewing their code, and making sure we maintain good code quality standards across the team. It's something I really enjoy because I remember when I was starting out, having good mentors made such a difference.
+
+Performance optimization is another big part of what I do. Whether it's reducing bundle sizes in our React applications or optimizing database queries in Rails, I'm always looking for ways to make our applications faster and more efficient.
+
+I work closely with product managers, designers, and other engineering teams to make sure we're building solutions that actually solve business problems and deliver value to our users. And lately, I've been setting up automation pipelines and improving our CI/CD processes to make our development workflow smoother and more reliable.

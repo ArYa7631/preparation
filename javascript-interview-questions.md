@@ -1,219 +1,229 @@
 # JavaScript Interview Questions
 
-## **📋 Question: What is the difference between callbacks and promises in JavaScript?**
-
-**Interview Approach**: Start with a brief explanation of both concepts, then show practical examples, highlight the problems with callbacks, and explain how promises solve those problems.
+## Table of Contents
+- [What is the difference between Callbacks and Promises?](#callbacks-vs-promises)
+- [What is the Event Loop in JavaScript?](#event-loop)
 
 ---
 
-## **🔄 Callbacks vs Promises - Key Differences**
+## callbacks-vs-promises
+## What is the difference between Callbacks and Promises?
 
-### **1. Basic Definition**
+**Answer:**
 
-**Callbacks**: Functions passed as arguments to other functions, executed when an asynchronous operation completes.
+Callbacks and Promises are both ways to handle asynchronous operations in JavaScript, but they differ significantly in their approach and capabilities.
 
-**Promises**: Objects that represent the eventual completion (or failure) of an asynchronous operation and its resulting value.
+### Callbacks
+Callbacks are functions passed as arguments to other functions, which are executed once the asynchronous operation completes.
 
-### **2. Syntax Comparison**
-
+**Simple Example:**
 ```javascript
 // Callback approach
 function fetchUserData(userId, callback) {
     setTimeout(() => {
-        const user = { id: userId, name: 'John Doe' };
-        callback(null, user);
+        const user = { id: userId, name: "John Doe" };
+        callback(user);
     }, 1000);
 }
 
-fetchUserData(123, function(error, user) {
-    if (error) {
-        console.error('Error:', error);
-        return;
-    }
-    console.log('User:', user);
+fetchUserData(123, (user) => {
+    console.log("User:", user.name);
 });
+```
 
+**Problems with Callbacks:**
+- **Callback Hell**: Nested callbacks become hard to read and maintain
+- **Error Handling**: Difficult to handle errors properly
+- **Inversion of Control**: You lose control over when the callback executes
+
+### Promises
+Promises represent the eventual completion (or failure) of an asynchronous operation and its resulting value.
+
+**Simple Example:**
+```javascript
 // Promise approach
-function fetchUserDataPromise(userId) {
+function fetchUserData(userId) {
     return new Promise((resolve, reject) => {
         setTimeout(() => {
-            const user = { id: userId, name: 'John Doe' };
+            const user = { id: userId, name: "John Doe" };
             resolve(user);
         }, 1000);
     });
 }
 
-fetchUserDataPromise(123)
-    .then(user => console.log('User:', user))
-    .catch(error => console.error('Error:', error));
+fetchUserData(123)
+    .then(user => console.log("User:", user.name))
+    .catch(error => console.error("Error:", error));
 ```
 
-### **3. Main Problems with Callbacks**
+**Advantages of Promises:**
+- **Better Error Handling**: Using `.catch()` for centralized error handling
+- **Chaining**: Easy to chain multiple operations with `.then()`
+- **Async/Await**: Can be used with modern async/await syntax
 
-#### **Callback Hell (Pyramid of Doom)**
+**Async/Await Example:**
 ```javascript
-// ❌ Callback Hell - Hard to read and maintain
-fetchUserData(123, function(error, user) {
-    if (error) return console.error(error);
-    
-    fetchUserPosts(user.id, function(error, posts) {
-        if (error) return console.error(error);
-        
-        fetchPostComments(posts[0].id, function(error, comments) {
-            if (error) return console.error(error);
-            
-            console.log('Comments:', comments);
-        });
-    });
-});
-```
-
-#### **Repetitive Error Handling**
-```javascript
-// ❌ Repetitive error handling in each callback
-function processData(data, callback) {
-    validateData(data, function(error, validatedData) {
-        if (error) {
-            callback(error);
-            return;
-        }
-        
-        transformData(validatedData, function(error, transformedData) {
-            if (error) {
-                callback(error);
-                return;
-            }
-            
-            saveData(transformedData, function(error, savedData) {
-                if (error) {
-                    callback(error);
-                    return;
-                }
-                
-                callback(null, savedData);
-            });
-        });
-    });
-}
-```
-
-### **4. How Promises Solve These Problems**
-
-#### **Clean Chainable Code**
-```javascript
-// ✅ Promise chain - Clean and readable
-fetchUserDataPromise(123)
-    .then(user => {
-        console.log('User:', user);
-        return fetchUserPostsPromise(user.id);
-    })
-    .then(posts => {
-        console.log('Posts:', posts);
-        return fetchPostCommentsPromise(posts[0].id);
-    })
-    .then(comments => {
-        console.log('Comments:', comments);
-    })
-    .catch(error => {
-        console.error('Error in any step:', error);
-    });
-```
-
-#### **Centralized Error Handling**
-```javascript
-// ✅ Single error handler for entire chain
-fetchUserDataPromise(123)
-    .then(user => {
-        if (!user) throw new Error('User not found');
-        return fetchUserPostsPromise(user.id);
-    })
-    .then(posts => {
-        if (!posts.length) throw new Error('No posts found');
-        return fetchPostCommentsPromise(posts[0].id);
-    })
-    .then(comments => {
-        console.log('Comments:', comments);
-    })
-    .catch(error => {
-        // Handles errors from any step in the chain
-        console.error('Error:', error.message);
-    });
-```
-
-#### **Easy Parallel Execution**
-```javascript
-// ✅ Parallel execution with Promise.all()
-Promise.all([
-    fetchUserDataPromise(123),
-    fetchUserPostsPromise(123),
-    fetchUserCommentsPromise(123)
-])
-.then(([user, posts, comments]) => {
-    console.log('All data:', { user, posts, comments });
-})
-.catch(error => {
-    console.error('Error:', error);
-});
-```
-
-### **5. Modern Async/Await Syntax**
-
-```javascript
-// ✅ Async/await - Even cleaner syntax
-async function fetchUserDataChain() {
+async function getUserData() {
     try {
-        const user = await fetchUserDataPromise(123);
-        console.log('User:', user);
-        
-        const posts = await fetchUserPostsPromise(user.id);
-        console.log('Posts:', posts);
-        
-        const comments = await fetchPostCommentsPromise(posts[0].id);
-        console.log('Comments:', comments);
-        
-        return comments;
+        const user = await fetchUserData(123);
+        console.log("User:", user.name);
     } catch (error) {
-        console.error('Error:', error);
-        throw error;
+        console.error("Error:", error);
     }
 }
 ```
 
 ---
+## event-loop
+## What is the Event Loop in JavaScript?
 
-## **📊 Comparison Summary**
+**Answer:**
 
-| Aspect | Callbacks | Promises |
-|--------|-----------|----------|
-| **Readability** | ❌ Poor (Callback Hell) | ✅ Good (Chainable) |
-| **Error Handling** | ❌ Repetitive | ✅ Centralized |
-| **Parallel Execution** | ❌ Complex | ✅ Simple |
-| **Composition** | ❌ Difficult | ✅ Easy |
-| **Debugging** | ❌ Hard | ✅ Easier |
-| **Async/Await Support** | ❌ No | ✅ Yes |
+The Event Loop is a fundamental mechanism in JavaScript that allows it to perform non-blocking operations despite being single-threaded. It's what makes JavaScript asynchronous.
+
+### How the Event Loop Works
+
+JavaScript has a **single-threaded** execution model, meaning it can only execute one piece of code at a time. However, it can handle multiple operations through the Event Loop.
+
+**Simple Example:**
+```javascript
+console.log("1. Start");
+
+setTimeout(() => {
+    console.log("3. Timeout callback");
+}, 0);
+
+console.log("2. End");
+
+// Output:
+// 1. Start
+// 2. End
+// 3. Timeout callback
+```
+
+### Event Loop Components
+
+1. **Call Stack**: Where synchronous code executes
+2. **Web APIs**: Browser APIs (setTimeout, fetch, DOM events)
+3. **Callback Queue**: Where callbacks wait to be executed
+4. **Event Loop**: Continuously checks if call stack is empty
+
+**Detailed Example:**
+```javascript
+console.log("1. Synchronous code starts");
+
+setTimeout(() => {
+    console.log("4. Timeout 1 (0ms)");
+}, 0);
+
+setTimeout(() => {
+    console.log("5. Timeout 2 (100ms)");
+}, 100);
+
+Promise.resolve().then(() => {
+    console.log("3. Microtask (Promise)");
+});
+
+console.log("2. Synchronous code ends");
+
+// Output:
+// 1. Synchronous code starts
+// 2. Synchronous code ends
+// 3. Microtask (Promise)
+// 4. Timeout 1 (0ms)
+// 5. Timeout 2 (100ms)
+```
+
+### Execution Order
+
+1. **Synchronous code** executes first (Call Stack)
+2. **Microtasks** execute next (Promises, queueMicrotask)
+3. **Macrotasks** execute last (setTimeout, setInterval, DOM events)
+
+**Microtask vs Macrotask Example:**
+```javascript
+console.log("1. Start");
+
+setTimeout(() => {
+    console.log("5. Macrotask (setTimeout)");
+}, 0);
+
+Promise.resolve().then(() => {
+    console.log("3. Microtask 1");
+    return Promise.resolve();
+}).then(() => {
+    console.log("4. Microtask 2");
+});
+
+console.log("2. End");
+
+// Output:
+// 1. Start
+// 2. End
+// 3. Microtask 1
+// 4. Microtask 2
+// 5. Macrotask (setTimeout)
+```
+
+### Why This Matters
+
+Understanding the Event Loop helps you:
+- Write more predictable asynchronous code
+- Avoid blocking the main thread
+- Understand why certain operations execute in specific order
+- Debug timing-related issues
+
+**Common Interview Follow-up:**
+- "What's the difference between microtasks and macrotasks?"
+- "How would you prevent blocking the main thread?"
+- "What happens if you have an infinite loop in your code?"
 
 ---
 
-## **🎯 Key Points for Interview**
+## How to Make Links Clickable in Markdown
 
-### **Why Promises are Better:**
-1. **Eliminates Callback Hell**: Clean, readable code
-2. **Centralized Error Handling**: Single `.catch()` for entire chain
-3. **Easy Composition**: Chain multiple operations
-4. **Parallel Execution**: Simple with `Promise.all()`
-5. **Modern Syntax**: Supports async/await
+### Option 1: Use a Markdown Viewer/Editor
+- **VS Code**: Links work automatically in preview mode
+- **Typora**: Links work automatically
+- **GitHub**: Links work automatically when viewing the file
+- **Obsidian**: Links work automatically
 
-### **When to Use Each:**
-- **Callbacks**: Legacy code, simple async operations, Node.js streams
-- **Promises**: Modern JavaScript, complex async flows, API calls
-- **Async/Await**: Current best practice, cleaner than promise chains
+### Option 2: Convert to HTML (if needed)
+If you need clickable links in a browser, you can convert this markdown to HTML using:
+- Online converters
+- VS Code extensions
+- Command line tools like `pandoc`
 
-### **Sample Interview Questions:**
-1. "What is callback hell and how do promises solve it?"
-2. "How would you convert a callback function to use promises?"
-3. "What's the difference between Promise.all() and Promise.race()?"
-4. "When would you use async/await vs .then() chains?"
+### Option 3: Use Markdown with TOC Support
+Many markdown viewers support table of contents with clickable links automatically.
 
----
+## How to Add More Questions
 
-*This covers the essential differences between callbacks and promises, focusing on the key problems callbacks create and how promises solve them.*
+To add a new question:
+
+1. **Add to Table of Contents** (at the top):
+   ```markdown
+   - [Your Question Title?](#descriptive-anchor-name)
+   ```
+
+2. **Add the question section** (anywhere you want):
+   ```markdown
+   ## Your Question Title?
+   
+   **Answer:**
+   
+   Your detailed answer here...
+   
+   ---
+   ```
+
+3. **Use consistent formatting**:
+   - Question titles as `##` headers
+   - Use `**Answer:**` for the main explanation
+   - Include code examples in ```javascript blocks
+   - Add `---` separators between questions
+
+4. **Anchor Link Rules**:
+   - Use descriptive, lowercase names with hyphens
+   - No numbers in anchor links
+   - Examples: `#callbacks-vs-promises`, `#event-loop`, `#closures`, `#hoisting`
