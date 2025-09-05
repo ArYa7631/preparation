@@ -23,10 +23,6 @@ Employee.select(:salary).distinct.order(salary: :desc).offset(1).limit(1).first
 # Method 2: Using subquery
 Employee.where(salary: Employee.select(:salary).distinct.order(salary: :desc).offset(1).limit(1)).first
 
-# Method 3: Using window functions (PostgreSQL)
-Employee.select("DISTINCT salary, ROW_NUMBER() OVER (ORDER BY salary DESC) as rank")
-        .having("ROW_NUMBER() OVER (ORDER BY salary DESC) = 2")
-        .first
 
 # Method 4: Using pluck and array indexing
 Employee.distinct.pluck(:salary).sort.reverse[1]
@@ -64,12 +60,6 @@ class Employee < ApplicationRecord
     distinct.salary.order(salary: :desc).offset(n - 1).limit(1).first
   end
   
-  # Alternative using window functions
-  def self.nth_highest_salary_window(n)
-    select("DISTINCT salary, ROW_NUMBER() OVER (ORDER BY salary DESC) as rank")
-      .having("ROW_NUMBER() OVER (ORDER BY salary DESC) = ?", n)
-      .first
-  end
 end
 
 # Usage
@@ -173,26 +163,6 @@ class Employee < ApplicationRecord
 end
 ```
 
-### <a id="7-window-functions"></a>7. **Window functions**
-
-**Question**: Find employees with their salary rank within their department.
-
-**Answer**:
-```ruby
-# Using window functions
-Employee.select("*, 
-                ROW_NUMBER() OVER (PARTITION BY department ORDER BY salary DESC) as dept_rank,
-                RANK() OVER (PARTITION BY department ORDER BY salary DESC) as dept_rank_with_ties,
-                DENSE_RANK() OVER (PARTITION BY department ORDER BY salary DESC) as dept_dense_rank")
-
-# Find top 3 earners in each department
-Employee.select("*, ROW_NUMBER() OVER (PARTITION BY department ORDER BY salary DESC) as dept_rank")
-        .having("ROW_NUMBER() OVER (PARTITION BY department ORDER BY salary DESC) <= 3")
-
-# Running total salary by department
-Employee.select("*, 
-                SUM(salary) OVER (PARTITION BY department ORDER BY hire_date) as running_total")
-```
 
 ### <a id="8-conditional-aggregations"></a>8. **Conditional aggregations**
 

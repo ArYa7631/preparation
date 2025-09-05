@@ -3,41 +3,43 @@
 ## Table of Contents
 
 ### Mid-Level Rails Developer Questions
-- [28. Explain Rails asset pipeline](#28-explain-rails-asset-pipeline)
-- [29. What are Rails engines?](#29-what-are-rails-engines)
-- [30. Explain Rails background job processing](#30-explain-rails-background-job-processing)
-- [31. What are Rails initializers?](#31-what-are-rails-initializers)
-- [32. Explain Rails database transactions](#32-explain-rails-database-transactions)
-- [33. What are Rails scopes vs class methods?](#33-what-are-rails-scopes-vs-class-methods)
+- [Explain Rails asset pipeline](#explain-rails-asset-pipeline)
+- [What are Rails engines?](#what-are-rails-engines)
+- [Explain Rails background job processing](#explain-rails-background-job-processing)
+- [What is Sidekiq?](#what-is-sidekiq)
+- [What is Delayed Job?](#what-is-delayed-job)
+- [What are Rails initializers?](#what-are-rails-initializers)
+- [Explain Rails database transactions](#explain-rails-database-transactions)
+- [What are Rails scopes vs class methods?](#what-are-rails-scopes-vs-class-methods)
 
 ### Senior-Level Rails Developer Questions
-- [34. Explain Rails application architecture patterns](#34-explain-rails-application-architecture-patterns)
-- [35. Explain Rails caching strategies in detail](#35-explain-rails-caching-strategies-in-detail)
-- [36. Explain Rails security best practices in detail](#36-explain-rails-security-best-practices-in-detail)
-- [37. Explain Rails performance optimization in detail](#37-explain-rails-performance-optimization-in-detail)
-- [38. Explain Rails API design patterns](#38-explain-rails-api-design-patterns)
-- [39. Explain Rails deployment and DevOps](#39-explain-rails-deployment-and-devops)
-- [40. Explain Rails testing strategies](#40-explain-rails-testing-strategies)
-- [41. Explain Rails monitoring and debugging](#41-explain-rails-monitoring-and-debugging)
-- [42. Explain Rails microservices architecture](#42-explain-rails-microservices-architecture)
+- [Explain Rails application architecture patterns](#explain-rails-application-architecture-patterns)
+- [Explain Rails caching strategies in detail](#explain-rails-caching-strategies-in-detail)
+- [Explain Rails security best practices in detail](#explain-rails-security-best-practices-in-detail)
+- [Explain Rails performance optimization in detail](#explain-rails-performance-optimization-in-detail)
+- [Explain Rails API design patterns](#explain-rails-api-design-patterns)
+- [Explain Rails deployment and DevOps](#explain-rails-deployment-and-devops)
+- [Explain Rails testing strategies](#explain-rails-testing-strategies)
+- [Explain Rails monitoring and debugging](#explain-rails-monitoring-and-debugging)
+- [Explain Rails microservices architecture](#explain-rails-microservices-architecture)
 
 ---
 
 ## Related Files
-- **[Basic to Mid-Level Questions](ruby-on-rails-basic-interview-questions.md)** - Fundamental Rails concepts (Questions 1-27)
-- **[Core Ruby & Rails Concepts](ruby-on-rails-core-concepts-interview-questions.md)** - Language fundamentals (Questions 43-73)
+- **[Basic to Mid-Level Questions](ruby-on-rails-basic-interview-questions.md)** - Fundamental Rails concepts
+- **[Core Ruby & Rails Concepts](ruby-on-rails-core-concepts-interview-questions.md)** - Language fundamentals
 
 ---
 
 ## Mid-Level Rails Developer Questions
 
-### <a id="28-explain-rails-asset-pipeline"></a>28. **Explain Rails asset pipeline**
+### <a id="explain-rails-asset-pipeline"></a>**Explain Rails asset pipeline**
     - Asset compilation and concatenation
     - Preprocessors (Sass, CoffeeScript)
     - Fingerprinting for cache busting
     - CDN integration
 
-### <a id="29-what-are-rails-engines"></a>29. **What are Rails engines?**
+### <a id="what-are-rails-engines"></a>**What are Rails engines?**
     ```ruby
     # lib/my_engine/engine.rb
     module MyEngine
@@ -51,7 +53,7 @@
     mount MyEngine::Engine, at: '/my_engine'
     ```
 
-### <a id="30-explain-rails-background-job-processing"></a>30. **Explain Rails background job processing**
+### <a id="explain-rails-background-job-processing"></a>**Explain Rails background job processing**
     ```ruby
     # app/jobs/email_job.rb
     class EmailJob < ApplicationJob
@@ -69,7 +71,79 @@
     EmailJob.set(wait: 1.hour).perform_later(user.id)
     ```
 
-### <a id="31-what-are-rails-initializers"></a>31. **What are Rails initializers?**
+### <a id="what-is-sidekiq"></a>**What is Sidekiq?**
+    ```ruby
+    # Gemfile
+    gem 'sidekiq'
+    
+    # app/jobs/email_job.rb
+    class EmailJob < ApplicationJob
+      queue_as :default
+      sidekiq_options retry: 3, backtrace: true
+      
+      def perform(user_id)
+        user = User.find(user_id)
+        UserMailer.welcome_email(user).deliver_now
+      end
+    end
+    
+    # config/sidekiq.yml
+    :concurrency: 25
+    :queues:
+      - [critical, 3]
+      - [default, 2]
+      - [low, 1]
+    
+    # Usage
+    EmailJob.perform_async(user.id)
+    EmailJob.perform_in(1.hour, user.id)
+    ```
+
+**Key Features:**
+- **Redis-based**: Uses Redis for job storage and coordination
+- **High performance**: Multi-threaded processing with configurable concurrency
+- **Queue prioritization**: Different queue weights for job importance
+- **Monitoring**: Built-in web UI for job monitoring and management
+- **Reliability**: Automatic retry mechanism with exponential backoff
+- **Scalability**: Can run multiple workers across different servers
+
+### <a id="what-is-delayed-job"></a>**What is Delayed Job?**
+    ```ruby
+    # Gemfile
+    gem 'delayed_job_active_record'
+    
+    # app/jobs/email_job.rb
+    class EmailJob < ApplicationJob
+      queue_as :default
+      
+      def perform(user_id)
+        user = User.find(user_id)
+        UserMailer.welcome_email(user).deliver_now
+      end
+    end
+    
+    # Usage
+    EmailJob.delay.perform(user.id)
+    EmailJob.delay(run_at: 1.hour.from_now).perform(user.id)
+    EmailJob.delay(queue: 'high_priority').perform(user.id)
+    ```
+
+**Key Features:**
+- **Database-backed**: Stores jobs in the database (no external dependencies)
+- **Simple setup**: Easy to configure and deploy
+- **Priority queues**: Support for different job priorities
+- **Scheduled jobs**: Built-in support for delayed execution
+- **Database transactions**: Jobs are part of database transactions
+- **ActiveRecord integration**: Seamless integration with Rails models
+
+**Sidekiq vs Delayed Job Comparison:**
+- **Performance**: Sidekiq is generally faster due to Redis and multi-threading
+- **Scalability**: Sidekiq scales better across multiple servers
+- **Dependencies**: Sidekiq requires Redis, Delayed Job is database-only
+- **Complexity**: Delayed Job is simpler to set up and maintain
+- **Use cases**: Sidekiq for high-performance apps, Delayed Job for simpler setups
+
+### <a id="what-are-rails-initializers"></a>**What are Rails initializers?**
     ```ruby
     # config/initializers/redis.rb
     $redis = Redis.new(url: ENV['REDIS_URL'])
@@ -81,7 +155,7 @@
     end
     ```
 
-### <a id="32-explain-rails-database-transactions"></a>32. **Explain Rails database transactions**
+### <a id="explain-rails-database-transactions"></a>**Explain Rails database transactions**
     ```ruby
     ActiveRecord::Base.transaction do
       user = User.create!(user_params)
@@ -92,7 +166,7 @@
     end
     ```
 
-### <a id="33-what-are-rails-scopes-vs-class-methods"></a>33. **What are Rails scopes vs class methods?**
+### <a id="what-are-rails-scopes-vs-class-methods"></a>**What are Rails scopes vs class methods?**
     ```ruby
     class User < ApplicationRecord
       # Scopes (preferred for simple queries)
@@ -110,7 +184,7 @@
 
 ## Senior-Level Rails Developer Questions
 
-### <a id="34-explain-rails-application-architecture-patterns"></a>34. **Explain Rails application architecture patterns**
+### <a id="explain-rails-application-architecture-patterns"></a>**Explain Rails application architecture patterns**
     ```ruby
     # Service Objects
     class UserRegistrationService
@@ -137,7 +211,7 @@
     end
     ```
 
-### <a id="35-explain-rails-caching-strategies-in-detail"></a>35. **Explain Rails caching strategies in detail**
+### <a id="explain-rails-caching-strategies-in-detail"></a>**Explain Rails caching strategies in detail**
     ```ruby
     # Fragment caching
     <% cache @user do %>
@@ -158,7 +232,7 @@
     end
     ```
 
-### <a id="36-explain-rails-security-best-practices-in-detail"></a>36. **Explain Rails security best practices in detail**
+### <a id="explain-rails-security-best-practices-in-detail"></a>**Explain Rails security best practices in detail**
 
 **Interview Approach**: Start with the most critical vulnerabilities, explain Rails' built-in protections, then discuss additional measures. Always mention OWASP Top 10 and demonstrate practical knowledge.
 
@@ -475,7 +549,7 @@ end
 4. "What security measures would you implement for file uploads?"
 5. "How do you handle sensitive data in Rails?"
 
-### <a id="37-explain-rails-performance-optimization-in-detail"></a>37. **Explain Rails performance optimization in detail**
+### <a id="explain-rails-performance-optimization-in-detail"></a>**Explain Rails performance optimization in detail**
 
 **Interview Approach**: Start with the most impactful optimizations (database queries), then move to caching, and finally discuss advanced techniques. Always mention monitoring and measurement first.
 
@@ -901,7 +975,7 @@ end
 - Don't implement caching without a clear strategy
 - Don't forget about monitoring and maintenance
 
-### <a id="38-explain-rails-api-design-patterns"></a>38. **Explain Rails API design patterns**
+### <a id="explain-rails-api-design-patterns"></a>**Explain Rails API design patterns**
     ```ruby
     # API versioning
     namespace :api do
@@ -920,7 +994,7 @@ end
     end
     ```
 
-### <a id="39-explain-rails-deployment-and-devops"></a>39. **Explain Rails deployment and DevOps**
+### <a id="explain-rails-deployment-and-devops"></a>**Explain Rails deployment and DevOps**
     ```ruby
     # Capistrano deployment
     set :application, 'my_app'
@@ -936,7 +1010,7 @@ end
     end
     ```
 
-### <a id="40-explain-rails-testing-strategies"></a>40. **Explain Rails testing strategies**
+### <a id="explain-rails-testing-strategies"></a>**Explain Rails testing strategies**
     ```ruby
     # RSpec with FactoryBot
     RSpec.describe User, type: :model do
@@ -961,7 +1035,7 @@ end
     end
     ```
 
-### <a id="41-explain-rails-monitoring-and-debugging"></a>41. **Explain Rails monitoring and debugging**
+### <a id="explain-rails-monitoring-and-debugging"></a>**Explain Rails monitoring and debugging**
     ```ruby
     # Logging
     Rails.logger.info "User #{user.id} logged in"
@@ -979,7 +1053,7 @@ end
     end
     ```
 
-### <a id="42-explain-rails-microservices-architecture"></a>42. **Explain Rails microservices architecture**
+### <a id="explain-rails-microservices-architecture"></a>**Explain Rails microservices architecture**
     ```ruby
     # Service communication
     class ExternalApiService
