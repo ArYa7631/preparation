@@ -6,7 +6,7 @@
 Yeah, thank you for giving me the opportunity to introduce myself.
 So, I am Nitesh Arya and I am currently working as a Lead Engineer at HCLTech. I have around 6 years of experience in software development.
 
-I started my career as a frontend developer, mainly working with React.js. But over time, I got more into backend work as well, and for the last 4 and a half years, I’ve been working as a full-stack developer. Overall, I have about 6 years of experience in React.js and around 4 years in Ruby on Rails. In fact, in the last few years, I’ve developed more interest on the backend side with Rails.
+I started my career as a Backend developer, mainly working with Ruby on Rails. But over time, I got more into frontend work as well, and for the last 4 and a half years, I’ve been working as a full-stack developer. Overall, I have about 6 years of experience in Ruby on Rails and around 4 years in React.js. 
 
 I have done my bachelor’s degree from SVIET College which is in Chandigarh. I got placed in Jungleworks from there, where I first started as an intern and later got a full-time role. At Jungleworks, I mainly worked on Marketplace SaaS platforms. In some projects, I got the chance to handle things end-to-end — both frontend and backend — and in some cases, I also worked from scratch. That was a great learning phase for me.
 

@@ -1,17 +1,17 @@
 # Ruby on Rails Active Record Interview Questions
 
 ## Table of Contents
-1. [Basic Active Record Queries](#basic-active-record-queries)
-2. [Complex Queries and Aggregations](#complex-queries-and-aggregations)
-3. [Associations and Joins](#associations-and-joins)
-4. [Performance and Optimization](#performance-and-optimization)
-5. [Advanced Active Record Features](#advanced-active-record-features)
+- [Basic Active Record Queries](#basic-active-record-queries)
+- [Complex Queries and Aggregations](#complex-queries-and-aggregations)
+- [Associations and Joins](#associations-and-joins)
+- [Performance and Optimization](#performance-and-optimization)
+- [Advanced Active Record Features](#advanced-active-record-features)
 
 ---
 
 ## Basic Active Record Queries
 
-### <a id="1-find-second-highest-salary"></a>1. **Find the second highest salary from employees table**
+### <a id="find-second-highest-salary"></a>1. **Find the second highest salary from employees table**
 
 **Question**: Write an Active Record query to find the second highest salary from the employees table.
 
@@ -47,7 +47,7 @@ WHERE "employees"."salary" = (
 ) LIMIT 1;
 ```
 
-### <a id="2-find-nth-highest-salary"></a>2. **Find the nth highest salary**
+### <a id="find-nth-highest-salary"></a>2. **Find the nth highest salary**
 
 **Question**: Write a method to find the nth highest salary.
 
@@ -67,7 +67,7 @@ Employee.nth_highest_salary(3)  # 3rd highest salary
 Employee.nth_highest_salary(5)  # 5th highest salary
 ```
 
-### <a id="3-find-duplicate-records"></a>3. **Find duplicate records**
+### <a id="find-duplicate-records"></a>3. **Find duplicate records**
 
 **Question**: Find all duplicate records based on a specific column.
 
@@ -88,7 +88,7 @@ User.select(:first_name, :last_name, :email)
 User.select(:email).group(:email).having("COUNT(*) > 1").count
 ```
 
-### <a id="4-find-records-with-null-values"></a>4. **Find records with null values**
+### <a id="find-records-with-null-values"></a>4. **Find records with null values**
 
 **Question**: Find all records where a specific column is null or not null.
 
@@ -114,7 +114,7 @@ User.where("email IS NULL AND phone IS NULL")
 
 ## Complex Queries and Aggregations
 
-### <a id="5-group-by-with-aggregations"></a>5. **Group by with aggregations**
+### <a id="group-by-with-aggregations"></a>5. **Group by with aggregations**
 
 **Question**: Group employees by department and find average salary, count, and max salary.
 
@@ -139,7 +139,7 @@ Employee.group(:department, :position)
         .select(:department, :position, 'COUNT(*) as count')
 ```
 
-### <a id="6-self-joins"></a>6. **Self joins**
+### <a id="self-joins"></a>6. **Self joins**
 
 **Question**: Find all employees who have the same manager.
 
@@ -164,7 +164,7 @@ end
 ```
 
 
-### <a id="8-conditional-aggregations"></a>8. **Conditional aggregations**
+### <a id="conditional-aggregations"></a>8. **Conditional aggregations**
 
 **Question**: Count employees by gender and calculate average salary for each gender.
 
@@ -191,7 +191,7 @@ Employee.select("
 
 ## Associations and Joins
 
-### <a id="9-complex-joins"></a>9. **Complex joins**
+### <a id="complex-joins"></a>9. **Complex joins**
 
 **Question**: Find all orders with customer details and product information.
 
@@ -222,7 +222,7 @@ Order.joins(:order_items)
      .select('orders.*, SUM(order_items.quantity * order_items.price) as total_amount')
 ```
 
-### <a id="10-has-many-through"></a>10. **Has many through associations**
+### <a id="has-many-through"></a>10. **Has many through associations**
 
 **Question**: Find all users who have purchased products from a specific category.
 
@@ -252,7 +252,7 @@ User.joins(orders: :order_items)
 
 ## Performance and Optimization
 
-### <a id="11-n1-queries"></a>11. **N+1 query problem**
+### <a id="n1-queries"></a>11. **N+1 query problem**
 
 **Question**: Explain and solve the N+1 query problem.
 
@@ -282,7 +282,7 @@ User.joins(:orders)
     .select('users.*, COUNT(orders.id) as order_count')
 ```
 
-### <a id="12-query-optimization"></a>12. **Query optimization**
+### <a id="query-optimization"></a>12. **Query optimization**
 
 **Question**: Optimize a slow query that finds users with their latest order.
 
@@ -312,7 +312,7 @@ User.joins("INNER JOIN (
 ) latest_orders ON users.id = latest_orders.user_id")
 ```
 
-### <a id="13-bulk-operations"></a>13. **Bulk operations**
+### <a id="bulk-operations"></a>13. **Bulk operations**
 
 **Question**: Perform bulk insert/update operations efficiently.
 
@@ -348,7 +348,7 @@ end
 
 ## Advanced Active Record Features
 
-### <a id="14-scopes-and-chaining"></a>14. **Scopes and method chaining**
+### <a id="scopes-and-chaining"></a>14. **Scopes and method chaining**
 
 **Question**: Create scopes for common queries and chain them.
 
@@ -384,7 +384,7 @@ User.active.recent.by_role('customer').with_orders
 User.high_spenders.by_status('verified')
 ```
 
-### <a id="15-callbacks-and-validations"></a>15. **Callbacks and validations**
+### <a id="callbacks-and-validations"></a>15. **Callbacks and validations**
 
 **Question**: Implement callbacks and validations for a User model.
 
@@ -447,7 +447,7 @@ class User < ApplicationRecord
 end
 ```
 
-### <a id="16-transactions"></a>16. **Database transactions**
+### <a id="transactions"></a>16. **Database transactions**
 
 **Question**: Implement a method that transfers money between accounts using transactions.
 
@@ -494,7 +494,7 @@ recipient_account = Account.find(2)
 sender_account.transfer_to(recipient_account, 100)
 ```
 
-### <a id="17-polymorphic-associations"></a>17. **Polymorphic associations**
+### <a id="polymorphic-associations"></a>17. **Polymorphic associations**
 
 **Question**: Implement a comment system that can comment on different types of content.
 
@@ -534,7 +534,7 @@ user.comments.includes(:commentable)
 Comment.where(commentable_type: 'Post').includes(:commentable)
 ```
 
-### <a id="18-custom-sql"></a>18. **Custom SQL queries**
+### <a id="custom-sql"></a>18. **Custom SQL queries**
 
 **Question**: Write custom SQL queries when Active Record methods are insufficient.
 
@@ -601,7 +601,7 @@ end
 
 ## Practice Questions
 
-### <a id="19-practice-problems"></a>19. **Common Interview Practice Problems**
+### <a id="practice-problems"></a>19. **Common Interview Practice Problems**
 
 **Problem 1**: Find the department with the highest average salary
 ```ruby

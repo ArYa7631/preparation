@@ -3,51 +3,51 @@
 ## 📋 Table of Contents
 
 ### Next.js Interview Questions
-- [1. What is Next.js?](#1-what-is-nextjs)
-- [2. Explain the difference between SSR and SSG in Next.js](#2-explain-the-difference-between-ssr-and-ssg-in-nextjs)
-- [3. What are the different rendering methods in Next.js?](#3-what-are-the-different-rendering-methods-in-nextjs)
-- [4. Explain Next.js file-based routing](#4-explain-nextjs-file-based-routing)
-- [5. What are dynamic routes in Next.js?](#5-what-are-dynamic-routes-in-nextjs)
-- [6. What is the App Router in Next.js 13+?](#6-what-is-the-app-router-in-nextjs-13)
-- [7. How do you create API routes in Next.js?](#7-how-do-you-create-api-routes-in-nextjs)
-- [8. What are Route Handlers in Next.js 13+?](#8-what-are-route-handlers-in-nextjs-13)
-- [9. What styling options does Next.js support?](#9-what-styling-options-does-nextjs-support)
-- [10. How do you use CSS Modules in Next.js?](#10-how-do-you-use-css-modules-in-nextjs)
-- [11. What is Image Optimization in Next.js?](#11-what-is-image-optimization-in-nextjs)
-- [12. Explain Next.js middleware](#12-explain-nextjs-middleware)
+- [What is Next.js?](#what-is-nextjs)
+- [Explain the difference between SSR and SSG in Next.js](#explain-the-difference-between-ssr-and-ssg-in-nextjs)
+- [What are the different rendering methods in Next.js?](#what-are-the-different-rendering-methods-in-nextjs)
+- [Explain Next.js file-based routing](#explain-nextjs-file-based-routing)
+- [What are dynamic routes in Next.js?](#what-are-dynamic-routes-in-nextjs)
+- [What is the App Router in Next.js 13+?](#what-is-the-app-router-in-nextjs-13)
+- [How do you create API routes in Next.js?](#how-do-you-create-api-routes-in-nextjs)
+- [What are Route Handlers in Next.js 13+?](#what-are-route-handlers-in-nextjs-13)
+- [What styling options does Next.js support?](#what-styling-options-does-nextjs-support)
+- [How do you use CSS Modules in Next.js?](#how-do-you-use-css-modules-in-nextjs)
+- [What is Image Optimization in Next.js?](#what-is-image-optimization-in-nextjs)
+- [Explain Next.js middleware](#explain-nextjs-middleware)
 
 ### React.js Interview Questions
-- [13. What is React?](#13-what-is-react)
-- [14. Explain JSX](#14-explain-jsx)
-- [15. What are React components?](#15-what-are-react-components)
-- [16. Explain the difference between state and props](#16-explain-the-difference-between-state-and-props)
-- [17. What are React hooks?](#17-what-are-react-hooks)
-- [18. Explain useEffect hook](#18-explain-useeffect-hook)
-- [19. What are the different useEffect patterns?](#19-what-are-the-different-useeffect-patterns)
-- [20. Explain React component lifecycle (Class Components)](#20-explain-react-component-lifecycle-class-components)
-- [21. How do you optimize React performance?](#21-how-do-you-optimize-react-performance)
-- [22. What is React.lazy and Suspense?](#22-what-is-reactlazy-and-suspense)
-- [23. What is React Context?](#23-what-is-react-context)
-- [24. When would you use Redux vs Context?](#24-when-would-you-use-redux-vs-context)
-- [25. Explain Redux Toolkit](#25-explain-redux-toolkit)
-- [26. What are React portals?](#26-what-are-react-portals)
-- [27. Explain React Error Boundaries](#27-explain-react-error-boundaries)
-- [28. What are React refs?](#28-what-are-react-refs)
+- [What is React?](#what-is-react)
+- [Explain JSX](#explain-jsx)
+- [What are React components?](#what-are-react-components)
+- [Explain the difference between state and props](#explain-the-difference-between-state-and-props)
+- [What are React hooks?](#what-are-react-hooks)
+- [Explain useEffect hook](#explain-useeffect-hook)
+- [What are the different useEffect patterns?](#what-are-the-different-useeffect-patterns)
+- [Explain React component lifecycle (Class Components)](#explain-react-component-lifecycle-class-components)
+- [How do you optimize React performance?](#how-do-you-optimize-react-performance)
+- [What is React.lazy and Suspense?](#what-is-reactlazy-and-suspense)
+- [What is React Context?](#what-is-react-context)
+- [When would you use Redux vs Context?](#when-would-you-use-redux-vs-context)
+- [Explain Redux Toolkit](#explain-redux-toolkit)
+- [What are React portals?](#what-are-react-portals)
+- [Explain React Error Boundaries](#explain-react-error-boundaries)
+- [What are React refs?](#what-are-react-refs)
 
 ### Practical Coding Questions
-- [29. Create a Next.js page with data fetching](#29-create-a-nextjs-page-with-data-fetching)
-- [30. Create a Next.js API route with authentication](#30-create-a-nextjs-api-route-with-authentication)
-- [31. Create a custom hook](#31-create-a-custom-hook)
-- [32. Create a reusable component](#32-create-a-reusable-component)
-- [33. Create a form with validation](#33-create-a-form-with-validation)
+- [Create a Next.js page with data fetching](#create-a-nextjs-page-with-data-fetching)
+- [Create a Next.js API route with authentication](#create-a-nextjs-api-route-with-authentication)
+- [Create a custom hook](#create-a-custom-hook)
+- [Create a reusable component](#create-a-reusable-component)
+- [Create a form with validation](#create-a-form-with-validation)
 
 ### System Design Questions
-- [34. How would you design a real-time chat application?](#34-how-would-you-design-a-realtime-chat-application)
-- [35. Design a URL shortener service](#35-design-a-url-shortener-service)
+- [How would you design a real-time chat application?](#how-would-you-design-a-realtime-chat-application)
+- [Design a URL shortener service](#design-a-url-shortener-service)
 
 ### Behavioral Questions
-- [36. How do you handle technical disagreements with team members?](#36-how-do-you-handle-technical-disagreements-with-team-members)
-- [37. Describe a challenging bug you've debugged](#37-describe-a-challenging-bug-youve-debugged)
+- [How do you handle technical disagreements with team members?](#how-do-you-handle-technical-disagreements-with-team-members)
+- [Describe a challenging bug you've debugged](#describe-a-challenging-bug-youve-debugged)
 
 ---
 
@@ -55,18 +55,18 @@
 
 ### Basic Concepts
 
-<a id="1-what-is-nextjs"></a>
+<a id="what-is-nextjs"></a>
 1. **What is Next.js?**
    - Next.js is a React framework that provides server-side rendering, static site generation, and other features
    - It's built on top of React and provides additional functionality for production applications
 
-<a id="2-explain-the-difference-between-ssr-and-ssg-in-nextjs"></a>
+<a id="explain-the-difference-between-ssr-and-ssg-in-nextjs"></a>
 2. **Explain the difference between SSR and SSG in Next.js**
    - **SSR (Server-Side Rendering)**: Pages are rendered on the server for each request
    - **SSG (Static Site Generation)**: Pages are pre-rendered at build time
    - **ISR (Incremental Static Regeneration)**: Combines benefits of both
 
-<a id="3-what-are-the-different-rendering-methods-in-nextjs"></a>
+<a id="what-are-the-different-rendering-methods-in-nextjs"></a>
 3. **What are the different rendering methods in Next.js?**
    ```javascript
    // Static Generation (default)
@@ -89,7 +89,7 @@
 
 ### File-based Routing
 
-<a id="4-explain-nextjs-file-based-routing"></a>
+<a id="explain-nextjs-file-based-routing"></a>
 4. **Explain Next.js file-based routing**
    ```
    pages/
@@ -102,7 +102,7 @@
        └── users.js      // /api/users
    ```
 
-<a id="5-what-are-dynamic-routes-in-nextjs"></a>
+<a id="what-are-dynamic-routes-in-nextjs"></a>
 5. **What are dynamic routes in Next.js?**
    ```javascript
    // pages/posts/[id].js
@@ -124,7 +124,7 @@
    }
    ```
 
-<a id="6-what-is-the-app-router-in-nextjs-13"></a>
+<a id="what-is-the-app-router-in-nextjs-13"></a>
 6. **What is the App Router in Next.js 13+?**
    ```javascript
    // app/page.tsx (App Router)
@@ -140,7 +140,7 @@
 
 ### API Routes
 
-<a id="7-how-do-you-create-api-routes-in-nextjs"></a>
+<a id="how-do-you-create-api-routes-in-nextjs"></a>
 7. **How do you create API routes in Next.js?**
    ```javascript
    // pages/api/users.js
@@ -154,7 +154,7 @@
    }
    ```
 
-<a id="8-what-are-route-handlers-in-nextjs-13"></a>
+<a id="what-are-route-handlers-in-nextjs-13"></a>
 8. **What are Route Handlers in Next.js 13+?**
    ```javascript
    // app/api/users/route.ts
@@ -172,7 +172,7 @@
 
 ### Styling & CSS
 
-<a id="9-what-styling-options-does-nextjs-support"></a>
+<a id="what-styling-options-does-nextjs-support"></a>
 9. **What styling options does Next.js support?**
    - CSS Modules
    - Sass/SCSS
@@ -180,7 +180,7 @@
    - Tailwind CSS
    - CSS-in-JS libraries
 
-<a id="10-how-do-you-use-css-modules-in-nextjs"></a>
+<a id="how-do-you-use-css-modules-in-nextjs"></a>
 10. **How do you use CSS Modules in Next.js?**
     ```javascript
     // styles/Button.module.css
@@ -199,7 +199,7 @@
 
 ### Advanced Next.js Features
 
-<a id="11-what-is-image-optimization-in-nextjs"></a>
+<a id="what-is-image-optimization-in-nextjs"></a>
 11. **What is Image Optimization in Next.js?**
     ```javascript
     import Image from 'next/image'
@@ -217,7 +217,7 @@
     }
     ```
 
-<a id="12-explain-nextjs-middleware"></a>
+<a id="explain-nextjs-middleware"></a>
 12. **Explain Next.js middleware**
     ```javascript
     // middleware.ts
@@ -243,13 +243,13 @@
 
 ### Core Concepts
 
-<a id="13-what-is-react"></a>
+<a id="what-is-react"></a>
 13. **What is React?**
     - React is a JavaScript library for building user interfaces
     - It uses a component-based architecture and virtual DOM
     - Developed by Facebook (Meta)
 
-<a id="14-explain-jsx"></a>
+<a id="explain-jsx"></a>
 14. **Explain JSX**
     ```javascript
     // JSX allows you to write HTML-like code in JavaScript
@@ -259,7 +259,7 @@
     const element = React.createElement('h1', null, 'Hello, ', name, '!')
     ```
 
-<a id="15-what-are-react-components"></a>
+<a id="what-are-react-components"></a>
 15. **What are React components?**
     ```javascript
     // Functional Component
@@ -277,7 +277,7 @@
 
 ### State & Props
 
-<a id="16-explain-the-difference-between-state-and-props"></a>
+<a id="explain-the-difference-between-state-and-props"></a>
 16. **Explain the difference between state and props**
     - **Props**: Read-only data passed from parent to child
     - **State**: Mutable data managed within a component
@@ -296,7 +296,7 @@
     }
     ```
 
-<a id="17-what-are-react-hooks"></a>
+<a id="what-are-react-hooks"></a>
 17. **What are React hooks?**
     ```javascript
     import { useState, useEffect, useContext } from 'react'
@@ -314,7 +314,7 @@
 
 ### Lifecycle & Effects
 
-<a id="18-explain-useeffect-hook"></a>
+<a id="explain-useeffect-hook"></a>
 18. **Explain useEffect hook**
     ```javascript
     useEffect(() => {
@@ -328,7 +328,7 @@
     }, [dependency]) // Dependency array
     ```
 
-<a id="19-what-are-the-different-useeffect-patterns"></a>
+<a id="what-are-the-different-useeffect-patterns"></a>
 19. **What are the different useEffect patterns?**
     ```javascript
     // Run on every render
@@ -347,7 +347,7 @@
     }, [count])
     ```
 
-<a id="20-explain-react-component-lifecycle-class-components"></a>
+<a id="explain-react-component-lifecycle-class-components"></a>
 20. **Explain React component lifecycle (Class Components)**
     ```javascript
     class MyComponent extends React.Component {
@@ -376,7 +376,7 @@
 
 ### Performance
 
-<a id="21-how-do-you-optimize-react-performance"></a>
+<a id="how-do-you-optimize-react-performance"></a>
 21. **How do you optimize React performance?**
     ```javascript
     // React.memo for functional components
@@ -395,7 +395,7 @@
     }, [a, b])
     ```
 
-<a id="22-what-is-reactlazy-and-suspense"></a>
+<a id="what-is-reactlazy-and-suspense"></a>
 22. **What is React.lazy and Suspense?**
     ```javascript
     import React, { Suspense } from 'react'
@@ -413,7 +413,7 @@
 
 ### Context & State Management
 
-<a id="23-what-is-react-context"></a>
+<a id="what-is-react-context"></a>
 23. **What is React Context?**
     ```javascript
     const ThemeContext = React.createContext()
@@ -432,13 +432,13 @@
     }
     ```
 
-<a id="24-when-would-you-use-redux-vs-context"></a>
+<a id="when-would-you-use-redux-vs-context"></a>
 24. **When would you use Redux vs Context?**
     - **Redux**: Large applications with complex state management
     - **Context**: Simple state sharing between components
     - **Zustand**: Lightweight alternative to Redux
 
-<a id="25-explain-redux-toolkit"></a>
+<a id="explain-redux-toolkit"></a>
 25. **Explain Redux Toolkit**
     ```javascript
     import { createSlice } from '@reduxjs/toolkit'
@@ -462,7 +462,7 @@
 
 ### Advanced Topics
 
-<a id="26-what-are-react-portals"></a>
+<a id="what-are-react-portals"></a>
 26. **What are React portals?**
     ```javascript
     import { createPortal } from 'react-dom'
@@ -475,7 +475,7 @@
     }
     ```
 
-<a id="27-explain-react-error-boundaries"></a>
+<a id="explain-react-error-boundaries"></a>
 27. **Explain React Error Boundaries**
     ```javascript
     class ErrorBoundary extends React.Component {
@@ -502,7 +502,7 @@
     }
     ```
 
-<a id="28-what-are-react-refs"></a>
+<a id="what-are-react-refs"></a>
 28. **What are React refs?**
     ```javascript
     function TextInputWithFocusButton() {
@@ -525,7 +525,7 @@
 
 ### Next.js
 
-<a id="29-create-a-nextjs-page-with-data-fetching"></a>
+<a id="create-a-nextjs-page-with-data-fetching"></a>
 29. **Create a Next.js page with data fetching**
     ```javascript
     // pages/posts/[id].js
@@ -553,7 +553,7 @@
     }
     ```
 
-<a id="30-create-a-nextjs-api-route-with-authentication"></a>
+<a id="create-a-nextjs-api-route-with-authentication"></a>
 30. **Create a Next.js API route with authentication**
     ```javascript
     // pages/api/protected.js
@@ -577,7 +577,7 @@
 
 ### React
 
-<a id="31-create-a-custom-hook"></a>
+<a id="create-a-custom-hook"></a>
 31. **Create a custom hook**
     ```javascript
     function useLocalStorage(key, initialValue) {
@@ -603,7 +603,7 @@
     }
     ```
 
-<a id="32-create-a-reusable-component"></a>
+<a id="create-a-reusable-component"></a>
 32. **Create a reusable component**
     ```javascript
     function Button({ children, variant = 'primary', size = 'medium', ...props }) {
@@ -629,7 +629,7 @@
     }
     ```
 
-<a id="33-create-a-form-with-validation"></a>
+<a id="create-a-form-with-validation"></a>
 33. **Create a form with validation**
     ```javascript
     function ContactForm() {
@@ -677,14 +677,14 @@
 
 ## System Design Questions
 
-<a id="34-how-would-you-design-a-realtime-chat-application"></a>
+<a id="how-would-you-design-a-realtime-chat-application"></a>
 34. **How would you design a real-time chat application?**
     - WebSocket connections for real-time communication
     - Redis for session management and caching
     - PostgreSQL for message persistence
     - Load balancers for scaling
 
-<a id="35-design-a-url-shortener-service"></a>
+<a id="design-a-url-shortener-service"></a>
 35. **Design a URL shortener service**
     - Hash function to generate short URLs
     - Database to store mappings
@@ -693,14 +693,14 @@
 
 ## Behavioral Questions
 
-<a id="36-how-do-you-handle-technical-disagreements-with-team-members"></a>
+<a id="how-do-you-handle-technical-disagreements-with-team-members"></a>
 36. **How do you handle technical disagreements with team members?**
     - Focus on data and evidence
     - Consider multiple perspectives
     - Be open to changing your mind
     - Document decisions and rationale
 
-<a id="37-describe-a-challenging-bug-youve-debugged"></a>
+<a id="describe-a-challenging-bug-youve-debugged"></a>
 37. **Describe a challenging bug you've debugged**
     - Explain your debugging process
     - Show systematic thinking

@@ -185,31 +185,117 @@
 ## Senior-Level Rails Developer Questions
 
 ### <a id="explain-rails-application-architecture-patterns"></a>**Explain Rails application architecture patterns**
-    ```ruby
-    # Service Objects
-    class UserRegistrationService
-      def initialize(user_params)
-        @user_params = user_params
-      end
-      
-      def call
-        ActiveRecord::Base.transaction do
-          user = create_user
-          create_profile(user)
-          send_welcome_email(user)
-          { success: true, user: user }
-        end
-      rescue StandardError => e
-        { success: false, error: e.message }
-      end
-      
-      private
-      
-      def create_user
-        User.create!(@user_params)
-      end
+
+Rails applications follow several architectural patterns to organize code and maintain separation of concerns:
+
+**1. MVC (Model-View-Controller)**
+- **Model**: Business logic, data validation, database interactions
+- **View**: Presentation layer, templates, user interface
+- **Controller**: Request handling, coordination between Model and View
+
+**2. Service Objects**
+Encapsulate business logic that doesn't belong in models or controllers:
+```ruby
+class UserRegistrationService
+  def initialize(user_params)
+    @user_params = user_params
+  end
+  
+  def call
+    ActiveRecord::Base.transaction do
+      user = create_user
+      create_profile(user)
+      send_welcome_email(user)
+      { success: true, user: user }
     end
-    ```
+  rescue StandardError => e
+    { success: false, error: e.message }
+  end
+  
+  private
+  
+  def create_user
+    User.create!(@user_params)
+  end
+end
+```
+
+**3. Form Objects**
+Handle complex form validations and data processing:
+```ruby
+class UserRegistrationForm
+  include ActiveModel::Model
+  include ActiveModel::Attributes
+  
+  attribute :name, :string
+  attribute :email, :string
+  attribute :password, :string
+  
+  validates :name, presence: true
+  validates :email, presence: true, format: { with: URI::MailTo::EMAIL_REGEXP }
+  
+  def save
+    return false unless valid?
+    UserRegistrationService.new(attributes).call
+  end
+end
+```
+
+**4. Query Objects**
+Encapsulate complex database queries:
+```ruby
+class UserSearchQuery
+  def initialize(params = {})
+    @params = params
+  end
+  
+  def call
+    users = User.all
+    users = users.where(role: @params[:role]) if @params[:role]
+    users = users.where('name ILIKE ?', "%#{@params[:search]}%") if @params[:search]
+    users.includes(:profile).order(:created_at)
+  end
+end
+```
+
+**5. Policy Objects**
+Handle authorization logic:
+```ruby
+class UserPolicy
+  def initialize(user, record)
+    @user = user
+    @record = record
+  end
+  
+  def update?
+    @user.admin? || @user == @record
+  end
+  
+  def destroy?
+    @user.admin?
+  end
+end
+```
+
+**6. Decorator Pattern**
+Add presentation logic without modifying models:
+```ruby
+class UserDecorator < SimpleDelegator
+  def full_name
+    "#{first_name} #{last_name}".strip
+  end
+  
+  def display_name
+    full_name.present? ? full_name : email
+  end
+end
+```
+
+**Benefits:**
+- **Single Responsibility**: Each class has one clear purpose
+- **Testability**: Easier to unit test individual components
+- **Maintainability**: Code is organized and easier to modify
+- **Reusability**: Components can be reused across the application
 
 ### <a id="explain-rails-caching-strategies-in-detail"></a>**Explain Rails caching strategies in detail**
     ```ruby
