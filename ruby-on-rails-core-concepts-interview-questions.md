@@ -394,35 +394,101 @@ end
 
 ### <a id="polymorphic-association"></a>**Polymorphic Association**
 ```ruby
+# Real-life example: Marketplace SaaS Platform
 # Polymorphic associations allow a model to belong to more than one type of model
 
-class Comment < ApplicationRecord
-  belongs_to :commentable, polymorphic: true
+# Activity/Notification system that can track different types of events
+class Activity < ApplicationRecord
+  belongs_to :trackable, polymorphic: true
+  belongs_to :user
+  
+  # trackable_type can be: 'Product', 'Order', 'Review', 'Message'
+  # trackable_id references the specific record
 end
 
-class Post < ApplicationRecord
-  has_many :comments, as: :commentable
+# Product model (for marketplace items)
+class Product < ApplicationRecord
+  belongs_to :seller, class_name: 'User'
+  has_many :activities, as: :trackable, dependent: :destroy
+  has_many :reviews, as: :reviewable, dependent: :destroy
+  has_many :images, as: :imageable, dependent: :destroy
 end
 
-class Photo < ApplicationRecord
-  has_many :comments, as: :commentable
+# Order model (for purchase transactions)
+class Order < ApplicationRecord
+  belongs_to :buyer, class_name: 'User'
+  belongs_to :product
+  has_many :activities, as: :trackable, dependent: :destroy
+  has_many :messages, as: :messageable, dependent: :destroy
 end
 
-# Database schema
-# comments table:
-# id | commentable_type | commentable_id | content
-# 1  | Post            | 5               | "Great post!"
-# 2  | Photo           | 3               | "Nice photo!"
+# Review model (for product/service reviews)
+class Review < ApplicationRecord
+  belongs_to :reviewer, class_name: 'User'
+  belongs_to :reviewable, polymorphic: true
+  has_many :activities, as: :trackable, dependent: :destroy
+end
 
-# Usage
-post = Post.find(5)
-post.comments.create(content: "Great post!")
+# Message model (for communication between users)
+class Message < ApplicationRecord
+  belongs_to :sender, class_name: 'User'
+  belongs_to :messageable, polymorphic: true
+  has_many :activities, as: :trackable, dependent: :destroy
+end
 
-photo = Photo.find(3)
-photo.comments.create(content: "Nice photo!")
+# Image model (for product photos, user avatars, etc.)
+class Image < ApplicationRecord
+  belongs_to :imageable, polymorphic: true
+  # imageable_type can be: 'Product', 'User', 'Store'
+end
 
-comment = Comment.find(1)
-comment.commentable  # Returns the associated Post or Photo object
+# Database schema examples:
+# activities table:
+# id | trackable_type | trackable_id | user_id | action | created_at
+# 1  | Product        | 15           | 3       | "created" | 2024-01-15
+# 2  | Order          | 8            | 5       | "purchased" | 2024-01-15
+# 3  | Review         | 12           | 7       | "reviewed" | 2024-01-16
+
+# reviews table:
+# id | reviewable_type | reviewable_id | reviewer_id | rating | content
+# 1  | Product         | 15            | 5           | 5      | "Great product!"
+# 2  | Store           | 3             | 7           | 4      | "Good service"
+
+# images table:
+# id | imageable_type | imageable_id | url | alt_text
+# 1  | Product        | 15           | "product1.jpg" | "Product photo"
+# 2  | User           | 5            | "avatar.jpg" | "User avatar"
+
+# Real-world usage examples:
+# Track when a product is created
+product = Product.create(name: "Vintage Camera", price: 299.99, seller_id: 3)
+product.activities.create(user: product.seller, action: "created")
+
+# Track when an order is placed
+order = Order.create(buyer_id: 5, product: product, total: 299.99)
+order.activities.create(user: order.buyer, action: "purchased")
+
+# Add a review to a product
+review = product.reviews.create(reviewer_id: 5, rating: 5, content: "Excellent camera!")
+review.activities.create(user: review.reviewer, action: "reviewed")
+
+# Add images to different entities
+product.images.create(url: "camera1.jpg", alt_text: "Front view")
+user = User.find(5)
+user.images.create(url: "avatar.jpg", alt_text: "Profile picture")
+
+# Get all activities for a specific product
+product.activities.includes(:user).order(created_at: :desc)
+
+# Get all reviews for a product (including nested reviews)
+product.reviews.includes(:reviewer)
+
+# Polymorphic benefits in marketplace context:
+# 1. Single Activity model tracks all user actions across different entities
+# 2. Reviews can be added to products, stores, or even other reviews
+# 3. Images can be attached to products, users, stores, or any other model
+# 4. Messages can be associated with orders, products, or general conversations
+# 5. Easy to extend - add new trackable types without changing existing code
 ```
 
 ### <a id="mysql-vs-postgresql"></a>**MySQL VS PostgreSQL**

@@ -40,17 +40,36 @@
     - CDN integration
 
 ### <a id="what-are-rails-engines"></a>**What are Rails engines?**
+
+Rails engines are mini-applications that can be embedded within a Rails application. They provide a way to share functionality across multiple applications while maintaining isolation and preventing conflicts.
+
+**Key characteristics:**
+- Self-contained with their own models, views, controllers, and routes
+- Can be mounted as sub-applications within a main Rails app
+- Useful for creating reusable components like admin panels, APIs, or feature modules
+- Namespace isolation prevents conflicts with the main application
+- Can be packaged as gems for distribution
+
+**Common use cases:**
+- Admin interfaces that can be shared across projects
+- API modules for specific functionality
+- Feature modules (e.g., blog, forum, e-commerce)
+- Third-party integrations
+
+**Example:**
     ```ruby
     # lib/my_engine/engine.rb
     module MyEngine
       class Engine < ::Rails::Engine
-        isolate_namespace MyEngine
+        isolate_namespace MyEngine  # Prevents naming conflicts
       end
     end
     
     # Mount in main app
     # config/routes.rb
     mount MyEngine::Engine, at: '/my_engine'
+    
+    # Access engine routes: /my_engine/posts, /my_engine/users, etc.
     ```
 
 ### <a id="explain-rails-background-job-processing"></a>**Explain Rails background job processing**
