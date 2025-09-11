@@ -6,6 +6,7 @@
 - [Associations and Joins](#associations-and-joins)
 - [Performance and Optimization](#performance-and-optimization)
 - [Advanced Active Record Features](#advanced-active-record-features)
+- [Tips for Active Record Interviews](#tips-for-active-record-interviews)
 
 ---
 
@@ -644,6 +645,109 @@ Product.joins(:order_items)
        .order('order_count DESC')
        .first
 ```
+
+### <a id="callback-sequence-calling"></a>19. **Explain Rails Callback Sequence Calling**
+
+**Question**: Explain the complete sequence of Rails callbacks for create, update, and destroy operations.
+
+**Answer**:
+```ruby
+class User < ApplicationRecord
+  # Callback sequence for create action
+  before_validation :set_defaults
+  before_validation :normalize_email
+  after_validation :log_validation_errors
+  before_save :encrypt_password
+  before_create :generate_token
+  after_create :send_welcome_email
+  after_save :update_cache
+  after_commit :notify_admin
+  
+  # Callback sequence for update action
+  before_validation :set_defaults
+  before_validation :normalize_email
+  after_validation :log_validation_errors
+  before_save :encrypt_password
+  before_update :track_changes
+  after_update :send_update_notification
+  after_save :update_cache
+  after_commit :notify_admin
+  
+  # Callback sequence for destroy action
+  before_destroy :check_dependencies
+  after_destroy :cleanup_associated_data
+  after_commit :notify_admin_of_deletion
+  
+  private
+  
+  def set_defaults
+    self.status ||= 'active'
+    self.created_at ||= Time.current
+  end
+  
+  def normalize_email
+    self.email = email.downcase.strip if email.present?
+  end
+  
+  def log_validation_errors
+    Rails.logger.error "Validation errors: #{errors.full_messages}" if errors.any?
+  end
+  
+  def encrypt_password
+    self.password_hash = BCrypt::Password.create(password) if password.present?
+  end
+  
+  def generate_token
+    self.token = SecureRandom.hex(10)
+  end
+  
+  def track_changes
+    @changes = changes.dup
+  end
+  
+  def check_dependencies
+    throw(:abort) if posts.exists?
+  end
+end
+```
+
+**Complete Callback Sequence:**
+
+**For Create:**
+1. `before_validation`
+2. `validations`
+3. `after_validation`
+4. `before_save`
+5. `before_create`
+6. **Database INSERT**
+7. `after_create`
+8. `after_save`
+9. `after_commit` (after transaction commits)
+
+**For Update:**
+1. `before_validation`
+2. `validations`
+3. `after_validation`
+4. `before_save`
+5. `before_update`
+6. **Database UPDATE**
+7. `after_update`
+8. `after_save`
+9. `after_commit` (after transaction commits)
+
+**For Destroy:**
+1. `before_destroy`
+2. **Database DELETE**
+3. `after_destroy`
+4. `after_commit` (after transaction commits)
+
+**Key Points:**
+- `after_commit` runs after the database transaction is committed
+- `after_save` runs for both create and update operations
+- `after_create` and `after_update` run only for their respective operations
+- Callbacks can be skipped with `save(validate: false)` or `update_column`
+- Use `throw(:abort)` to halt the callback chain
+- `after_commit` is useful for external API calls or emails
 
 ---
 

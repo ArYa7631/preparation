@@ -34,6 +34,9 @@
 - [Access Control (Private, Protected, Public)](#access-control)
 - [Block, Proc, Lambda](#block-proc-lambda)
 - [Difference select, collect, map](#select-collect-map)
+- [RSpec Mocking and Third-Party API Mocking](#rspec-mocking)
+- [Delete VS Destroy](#delete-vs-destroy)
+- [After Save VS After Commit](#after-save-vs-after-commit)
 
 ### Tips for Rails Interview Success
 - [Tips for Rails Interview Success](#tips-for-rails-interview-success)
@@ -41,9 +44,10 @@
 ---
 
 ## Related Files
-- **[Basic to Mid-Level Questions](ruby-on-rails-basic-interview-questions.md)** - Fundamental Rails concepts (Questions 1-27)
-- **[Advanced Rails Questions](ruby-on-rails-advanced-interview-questions.md)** - Senior-level Rails concepts (Questions 28-42)
+- **[Most Frequently Asked Questions](ruby-on-rails-frequently-asked-questions.md)** - Top 50 most commonly asked Rails interview questions
+- **[Advanced Rails Questions](ruby-on-rails-advanced-interview-questions.md)** - Senior-level Rails concepts
 - **[Core Ruby & Rails Concepts](ruby-on-rails-core-concepts-interview-questions.md)** - Language fundamentals
+- **[ActiveRecord Questions](ruby-on-rails-activerecord-interview-questions.md)** - Database and ORM specific questions
 
 ---
 
@@ -1514,6 +1518,405 @@ User.where(active: true).pluck(:name)  # Best performance
 User.all.select(&:active?).map(&:name)  # Loads all records into memory
 ```
 
+### <a id="rspec-mocking"></a>**RSpec Mocking and Third-Party API Mocking**
+
+**Q: What is mocking in RSpec and how do you mock third-party API calls?**
+
+**Answer:**
+
+**What is Mocking?**
+
+Mocking in RSpec creates fake objects (mocks) or replaces real method calls with fake implementations (stubs) to isolate code under test. This allows you to:
+- Test without external dependencies
+- Control external service responses
+- Speed up tests (no network calls)
+- Test error scenarios
+
+**Basic RSpec Mocking:**
+
+```ruby
+# Creating doubles (mock objects)
+user_double = double("User")
+allow(user_double).to receive(:name).and_return("John Doe")
+
+# Stubbing methods on real objects
+user = User.new
+allow(user).to receive(:send_email).and_return(true)
+
+# Stubbing class methods
+allow(User).to receive(:find).with(1).and_return(user_double)
+
+# Stubbing with blocks
+allow(user).to receive(:process) do |data|
+  "Processed: #{data}"
+end
+```
+
+**Third-Party API Mocking:**
+
+**Method 1: Using WebMock (Recommended)**
+
+```ruby
+# Gemfile
+gem 'webmock'
+
+# spec/rails_helper.rb
+require 'webmock/rspec'
+WebMock.disable_net_connect!(allow_localhost: true)
+
+# spec/services/payment_service_spec.rb
+RSpec.describe PaymentService do
+  describe '.process_payment' do
+    context 'when payment succeeds' do
+      before do
+        stub_request(:post, "https://api.stripe.com/v1/charges")
+          .to_return(
+            status: 200,
+            body: { id: 'ch_123', status: 'succeeded' }.to_json
+          )
+      end
+      
+      it 'processes payment' do
+        result = PaymentService.process_payment(1000, 'tok_123')
+        expect(result['status']).to eq('succeeded')
+      end
+    end
+    
+    context 'when payment fails' do
+      before do
+        stub_request(:post, "https://api.stripe.com/v1/charges")
+          .to_return(
+            status: 402,
+            body: { error: { type: 'card_error' } }.to_json
+          )
+      end
+      
+      it 'handles failure' do
+        result = PaymentService.process_payment(1000, 'tok_123')
+        expect(result['error']).to be_present
+      end
+    end
+  end
+end
+```
+
+**Method 2: Mocking Service Classes**
+
+```ruby
+# app/services/email_service.rb
+class EmailService
+  def self.send_welcome_email(user)
+    response = ExternalEmailAPI.send_email(
+      to: user.email,
+      subject: 'Welcome!',
+      body: "Welcome #{user.name}!"
+    )
+    response.success?
+  end
+end
+
+# spec/services/email_service_spec.rb
+RSpec.describe EmailService do
+  let(:user) { double("User", email: 'user@example.com', name: 'John') }
+  
+  context 'when email succeeds' do
+    before do
+      mock_response = double("response", success?: true)
+      allow(ExternalEmailAPI).to receive(:send_email).and_return(mock_response)
+    end
+    
+    it 'sends email' do
+      result = EmailService.send_welcome_email(user)
+      expect(result).to be true
+      expect(ExternalEmailAPI).to have_received(:send_email)
+    end
+  end
+end
+```
+
+**Advanced Techniques:**
+
+```ruby
+# Mocking with exceptions
+allow(service).to receive(:risky_operation).and_raise(StandardError, "Error")
+
+# Mocking with multiple return values
+allow(service).to receive(:get_data)
+  .and_return("first")
+  .and_return("second")
+  .and_raise(StandardError, "fails")
+
+# Argument matchers
+allow(service).to receive(:find).with(kind_of(Integer)).and_return(user)
+allow(service).to receive(:search).with(hash_including(name: 'John')).and_return([user])
+```
+
+**Best Practices:**
+
+1. **Use WebMock for HTTP requests** - Most reliable
+2. **Mock at service boundaries** - Only external dependencies
+3. **Test success and failure scenarios** - Both response types
+4. **Use realistic response data** - Match actual API structure
+5. **Reset mocks between tests** - Use `WebMock.reset!`
+
+**Configuration:**
+
+```ruby
+# spec/rails_helper.rb
+RSpec.configure do |config|
+  config.before(:each) do
+    WebMock.disable_net_connect!(allow_localhost: true)
+  end
+  
+  config.after(:each) do
+    WebMock.reset!
+  end
+end
+```
+
+**Key Benefits:**
+- Fast tests (no network delays)
+- Reliable tests (no external dependencies)
+- Predictable responses
+- Cost effective (no API charges)
+
+### <a id="delete-vs-destroy"></a>**Delete VS Destroy**
+
+**Q: What's the difference between delete and destroy in ActiveRecord?**
+
+**Answer:**
+
+**Delete** - Direct SQL operation that bypasses ActiveRecord callbacks and validations.
+
+**Destroy** - ActiveRecord method that runs callbacks and validations before deletion.
+
+```ruby
+# DELETE - Direct SQL, no callbacks
+user = User.find(1)
+user.delete  # Executes: DELETE FROM users WHERE id = 1
+# No callbacks, no validations, no dependent: :destroy
+
+# DESTROY - ActiveRecord method with callbacks
+user = User.find(1)
+user.destroy  # Runs callbacks, then executes DELETE
+# Runs: before_destroy, after_destroy callbacks
+# Handles dependent: :destroy associations
+```
+
+**Key Differences:**
+
+| Feature | Delete | Destroy |
+|---------|--------|---------|
+| **Callbacks** | ❌ No callbacks | ✅ Runs callbacks |
+| **Validations** | ❌ No validations | ✅ Runs validations |
+| **Dependent associations** | ❌ Ignores dependent: :destroy | ✅ Handles dependent: :destroy |
+| **Performance** | ✅ Faster (direct SQL) | ❌ Slower (callbacks) |
+| **Return value** | Number of deleted rows | The destroyed object |
+| **Error handling** | ❌ No error handling | ✅ Raises exceptions on failure |
+
+**Examples:**
+
+```ruby
+class User < ApplicationRecord
+  has_many :posts, dependent: :destroy
+  has_many :comments, dependent: :delete_all
+  
+  before_destroy :check_admin
+  after_destroy :log_deletion
+  
+  private
+  
+  def check_admin
+    throw(:abort) if admin?
+  end
+  
+  def log_deletion
+    Rails.logger.info "User #{id} deleted"
+  end
+end
+
+# DELETE example
+user = User.find(1)
+deleted_count = user.delete  # Returns: 1
+# SQL: DELETE FROM users WHERE id = 1
+# Posts remain in database (dependent: :destroy ignored)
+# No callbacks executed
+
+# DESTROY example
+user = User.find(1)
+destroyed_user = user.destroy  # Returns: User object
+# Runs: check_admin, log_deletion callbacks
+# Deletes associated posts (dependent: :destroy)
+# Deletes associated comments (dependent: :delete_all)
+```
+
+**When to Use:**
+
+**Use DELETE when:**
+- You need maximum performance
+- You don't need callbacks
+- You're deleting many records
+- You're sure about data integrity
+
+```ruby
+# Bulk deletion for performance
+User.where(created_at: 1.year.ago).delete_all
+
+# Direct deletion without callbacks
+user.delete  # Faster than destroy
+```
+
+**Use DESTROY when:**
+- You need callbacks to run
+- You have dependent associations
+- You need validations
+- You want proper error handling
+
+```ruby
+# Proper deletion with callbacks
+user.destroy  # Runs all callbacks and validations
+
+# With error handling
+begin
+  user.destroy!
+rescue ActiveRecord::RecordNotDestroyed => e
+  puts "Could not destroy user: #{e.message}"
+end
+```
+
+### <a id="after-save-vs-after-commit"></a>**After Save VS After Commit**
+
+**Q: What's the difference between after_save and after_commit callbacks?**
+
+**Answer:**
+
+**after_save** - Runs immediately after the record is saved to the database, but within the same transaction.
+
+**after_commit** - Runs after the database transaction is successfully committed.
+
+```ruby
+class User < ApplicationRecord
+  after_save :send_immediate_notification
+  after_commit :send_async_notification
+  
+  private
+  
+  def send_immediate_notification
+    # Runs within the same transaction
+    # If transaction fails, this callback already ran
+    puts "User saved: #{name}"
+  end
+  
+  def send_async_notification
+    # Runs only after transaction commits successfully
+    # Safe for external API calls, emails, etc.
+    UserMailer.welcome(self).deliver_later
+  end
+end
+```
+
+**Key Differences:**
+
+| Feature | after_save | after_commit |
+|---------|------------|--------------|
+| **Transaction timing** | Within transaction | After transaction commits |
+| **Rollback behavior** | Callback already executed | Callback not executed if rolled back |
+| **External API calls** | ❌ Risky (may rollback) | ✅ Safe |
+| **Email sending** | ❌ Risky | ✅ Safe |
+| **Performance** | ✅ Faster | ❌ Slightly slower |
+| **Error handling** | Can cause rollback | Won't affect transaction |
+
+**Transaction Example:**
+
+```ruby
+# Example with transaction rollback
+ActiveRecord::Base.transaction do
+  user = User.create!(name: "John", email: "john@example.com")
+  # after_save callback runs here
+  
+  # If this fails, transaction rolls back
+  # but after_save callback already executed
+  raise ActiveRecord::Rollback
+end
+# after_commit callback never runs
+```
+
+**Real-world Usage:**
+
+```ruby
+class Order < ApplicationRecord
+  has_many :order_items
+  belongs_to :user
+  
+  after_save :update_inventory
+  after_commit :send_confirmation_email, :charge_payment
+  
+  private
+  
+  def update_inventory
+    # Safe to run within transaction
+    # Updates inventory immediately
+    order_items.each do |item|
+      item.product.decrement!(:stock, item.quantity)
+    end
+  end
+  
+  def send_confirmation_email
+    # Safe to run after commit
+    # Won't send email if transaction fails
+    OrderMailer.confirmation(self).deliver_later
+  end
+  
+  def charge_payment
+    # Safe to run after commit
+    # Won't charge if order creation fails
+    PaymentService.charge(self.total, self.user.payment_method)
+  end
+end
+```
+
+**When to Use:**
+
+**Use after_save when:**
+- You need immediate database updates
+- You're updating related records
+- You need the callback to run even if transaction fails
+- Performance is critical
+
+```ruby
+after_save :update_counter_cache
+after_save :log_audit_trail
+after_save :update_search_index
+```
+
+**Use after_commit when:**
+- You're making external API calls
+- You're sending emails
+- You're enqueueing background jobs
+- You want callbacks to run only on successful commits
+
+```ruby
+after_commit :send_welcome_email
+after_commit :sync_with_external_service
+after_commit :enqueue_analytics_job
+```
+
+**Callback Order:**
+
+```ruby
+class User < ApplicationRecord
+  after_save :callback1
+  after_commit :callback2
+  
+  def save_user
+    save!  # Transaction starts
+    # callback1 runs here (within transaction)
+    # Transaction commits
+    # callback2 runs here (after commit)
+  end
+end
+```
+
 ## <a id="tips-for-rails-interview-success"></a>Tips for Rails Interview Success
 
 - Practice writing Rails code without an IDE
@@ -1533,5 +1936,7 @@ User.all.select(&:active?).map(&:name)  # Loads all records into memory
 
 ## Next Steps
 Ready for more advanced topics? Check out:
-- **[Basic to Mid-Level Questions](ruby-on-rails-basic-interview-questions.md)** - Fundamental Rails concepts
+- **[Most Frequently Asked Questions](ruby-on-rails-frequently-asked-questions.md)** - Top 50 most commonly asked Rails interview questions
 - **[Advanced Rails Questions](ruby-on-rails-advanced-interview-questions.md)** - Senior-level Rails concepts
+- **[Core Ruby & Rails Concepts](ruby-on-rails-core-concepts-interview-questions.md)** - Language fundamentals
+- **[ActiveRecord Questions](ruby-on-rails-activerecord-interview-questions.md)** - Database and ORM specific questions

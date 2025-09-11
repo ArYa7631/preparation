@@ -5,236 +5,64 @@
 ### 🔥 **TOP 50 MOST FREQUENTLY ASKED QUESTIONS**
 
 #### **Basic Rails Concepts (Questions 1-15)**
-1. [What is Ruby on Rails?](#1-what-is-ruby-on-rails)
-2. [Explain the MVC pattern in Rails](#2-explain-the-mvc-pattern-in-rails)
-3. [What are Rails conventions?](#3-what-are-rails-conventions)
-4. [What is ActiveRecord?](#4-what-is-activerecord)
-5. [Explain Rails associations](#5-explain-rails-associations)
-6. [What are Rails validations?](#6-what-are-rails-validations)
-7. [Explain Rails callbacks](#7-explain-rails-callbacks)
-8. [Explain Rails routing](#8-explain-rails-routing)
-9. [What are strong parameters?](#9-what-are-strong-parameters)
-10. [What are Rails migrations?](#10-what-are-rails-migrations)
-11. [What are Rails scopes?](#11-what-are-rails-scopes)
-12. [What is Rack in Rails?](#12-what-is-rack-in-rails)
-13. [What are Rails gems?](#13-what-are-rails-gems)
-14. [What are Rails concerns?](#14-what-are-rails-concerns)
-15. [Explain Rails caching strategies](#15-explain-rails-caching-strategies)
+1. [What is Ruby on Rails?](ruby-on-rails-interview-questions.md#what-is-ruby-on-rails)
+2. [Explain the MVC pattern in Rails](ruby-on-rails-interview-questions.md#explain-the-mvc-pattern-in-rails)
+3. [What are Rails conventions?](ruby-on-rails-interview-questions.md#what-are-the-rails-conventions)
+4. [What is ActiveRecord?](ruby-on-rails-interview-questions.md#what-is-activerecord)
+5. [Explain Rails associations](ruby-on-rails-interview-questions.md#explain-rails-associations)
+6. [What are Rails validations?](ruby-on-rails-interview-questions.md#what-are-rails-validations)
+7. [Explain Rails callbacks](ruby-on-rails-interview-questions.md#explain-rails-callbacks)
+8. [Explain Rails routing](ruby-on-rails-interview-questions.md#explain-rails-routing)
+9. [What are strong parameters?](ruby-on-rails-interview-questions.md#what-are-strong-parameters)
+10. [What are Rails migrations?](ruby-on-rails-interview-questions.md#what-are-rails-migrations)
+11. [What are Rails scopes?](ruby-on-rails-interview-questions.md#what-are-rails-scopes)
+12. [What is Rack in Rails?](ruby-on-rails-interview-questions.md#what-is-rack-in-rails)
+13. [What are Rails gems?](ruby-on-rails-interview-questions.md#what-are-rails-gems)
+14. [What are Rails concerns?](ruby-on-rails-interview-questions.md#what-are-rails-concerns)
+15. [Explain Rails caching strategies](ruby-on-rails-interview-questions.md#explain-rails-caching-strategies)
 
 #### **ActiveRecord & Database (Questions 16-25)**
-16. [What is the N+1 query problem?](#16-what-is-the-n1-query-problem)
-17. [How do you solve N+1 queries?](#17-how-do-you-solve-n1-queries)
-18. [Explain eager loading vs lazy loading](#18-explain-eager-loading-vs-lazy-loading)
-19. [What are database transactions?](#19-what-are-database-transactions)
-20. [Explain polymorphic associations](#20-explain-polymorphic-associations)
-21. [What is Single Table Inheritance (STI)?](#21-what-is-single-table-inheritance-sti)
-22. [Explain self joins](#22-explain-self-joins)
-23. [What are Rails scopes vs class methods?](#23-what-are-rails-scopes-vs-class-methods)
-24. [How do you find duplicate records?](#24-how-do-you-find-duplicate-records)
-25. [How do you find the nth highest salary?](#25-how-do-you-find-the-nth-highest-salary)
+16. [What is the N+1 query problem?](ruby-on-rails-interview-questions.md#what-is-the-n1-query-problem)
+17. [How do you solve N+1 queries?](ruby-on-rails-interview-questions.md#how-do-you-solve-n1-queries)
+18. [Explain eager loading vs lazy loading](ruby-on-rails-core-concepts-interview-questions.md#eager-loading-vs-lazy-loading)
+19. [What are database transactions?](ruby-on-rails-interview-questions.md#what-are-database-transactions)
+20. [Explain polymorphic associations](ruby-on-rails-core-concepts-interview-questions.md#polymorphic-association)
+21. [What is Single Table Inheritance (STI)?](ruby-on-rails-core-concepts-interview-questions.md#single-table-inheritance)
+22. [Explain self joins](ruby-on-rails-activerecord-interview-questions.md#self-joins)
+23. [What are Rails scopes vs class methods?](ruby-on-rails-advanced-interview-questions.md#what-are-rails-scopes-vs-class-methods)
+24. [How do you find duplicate records?](ruby-on-rails-activerecord-interview-questions.md#find-duplicate-records)
+25. [How do you find the nth highest salary?](ruby-on-rails-activerecord-interview-questions.md#find-nth-highest-salary)
 
 #### **Ruby Fundamentals (Questions 26-35)**
-26. [What is self in Ruby?](#26-what-is-self-in-ruby)
-27. [Explain include vs extend](#27-explain-include-vs-extend)
-28. [What is mixing in Ruby?](#28-what-is-mixing-in-ruby)
-29. [Explain blocks, procs, and lambdas](#29-explain-blocks-procs-and-lambdas)
-30. [What is the difference between strings and symbols?](#30-what-is-the-difference-between-strings-and-symbols)
-31. [Explain OOP concepts in Ruby](#31-explain-oop-concepts-in-ruby)
-32. [What is the difference between require and load?](#32-what-is-the-difference-between-require-and-load)
-33. [Explain access control (private, protected, public)](#33-explain-access-control-private-protected-public)
-34. [What is the difference between select, collect, and map?](#34-what-is-the-difference-between-select-collect-and-map)
-35. [Explain module vs class](#35-explain-module-vs-class)
+26. [What is self in Ruby?](ruby-on-rails-core-concepts-interview-questions.md#self-in-ruby)
+27. [Explain include vs extend](ruby-on-rails-core-concepts-interview-questions.md#include-vs-extends)
+28. [What is mixing in Ruby?](ruby-on-rails-core-concepts-interview-questions.md#mixing-in-ruby)
+29. [Explain blocks, procs, and lambdas](ruby-on-rails-core-concepts-interview-questions.md#block-proc-lambda)
+30. [What is the difference between strings and symbols?](ruby-on-rails-core-concepts-interview-questions.md#string-vs-symbol)
+31. [Explain OOP concepts in Ruby](ruby-on-rails-core-concepts-interview-questions.md#oops-concepts)
+32. [What is the difference between require and load?](ruby-on-rails-core-concepts-interview-questions.md#require-vs-load)
+33. [Explain access control (private, protected, public)](ruby-on-rails-core-concepts-interview-questions.md#access-control)
+34. [What is the difference between select, collect, and map?](ruby-on-rails-core-concepts-interview-questions.md#select-collect-map-difference)
+35. [Explain module vs class](ruby-on-rails-core-concepts-interview-questions.md#module-vs-class)
 
 #### **Security & Performance (Questions 36-45)**
-36. [What are common Rails security concerns?](#36-what-are-common-rails-security-concerns)
-37. [How do you prevent SQL injection?](#37-how-do-you-prevent-sql-injection)
-38. [How do you prevent XSS attacks?](#38-how-do-you-prevent-xss-attacks)
-39. [How do you optimize Rails performance?](#39-how-do-you-optimize-rails-performance)
-40. [What are Rails caching strategies?](#40-what-are-rails-caching-strategies)
-41. [How do you handle background jobs?](#41-how-do-you-handle-background-jobs)
-42. [What is Sidekiq?](#42-what-is-sidekiq)
-43. [How do you implement authentication?](#43-how-do-you-implement-authentication)
-44. [How do you implement authorization?](#44-how-do-you-implement-authorization)
-45. [What are Rails security best practices?](#45-what-are-rails-security-best-practices)
+36. [What are common Rails security concerns?](ruby-on-rails-advanced-interview-questions.md#explain-rails-security-best-practices-in-detail)
+37. [How do you prevent SQL injection?](ruby-on-rails-advanced-interview-questions.md#explain-rails-security-best-practices-in-detail)
+38. [How do you prevent XSS attacks?](ruby-on-rails-advanced-interview-questions.md#explain-rails-security-best-practices-in-detail)
+39. [How do you optimize Rails performance?](ruby-on-rails-advanced-interview-questions.md#explain-rails-performance-optimization-in-detail)
+40. [What are Rails caching strategies?](ruby-on-rails-advanced-interview-questions.md#explain-rails-caching-strategies-in-detail)
+41. [How do you handle background jobs?](ruby-on-rails-advanced-interview-questions.md#explain-rails-background-job-processing)
+42. [What is Sidekiq?](ruby-on-rails-advanced-interview-questions.md#what-is-sidekiq)
+43. [How do you implement authentication?](ruby-on-rails-advanced-interview-questions.md#explain-rails-security-best-practices-in-detail)
+44. [How do you implement authorization?](ruby-on-rails-advanced-interview-questions.md#explain-rails-security-best-practices-in-detail)
+45. [What are Rails security best practices?](ruby-on-rails-advanced-interview-questions.md#explain-rails-security-best-practices-in-detail)
 
 #### **Advanced Topics (Questions 46-50)**
-46. [What are Rails engines?](#46-what-are-rails-engines)
-47. [Explain Rails API design patterns](#47-explain-rails-api-design-patterns)
-48. [What are Rails testing strategies?](#48-what-are-rails-testing-strategies)
-49. [How do you deploy Rails applications?](#49-how-do-you-deploy-rails-applications)
-50. [What are Rails architectural patterns?](#50-what-are-rails-architectural-patterns)
-
----
-
-## **📚 ANSWER LOCATIONS**
-
-### **Basic Rails Concepts**
-
-#### **1. What is Ruby on Rails?**
-**Answer**: [Click here for detailed answer](ruby-on-rails-basic-interview-questions.md#1-what-is-ruby-on-rails)
-
-#### **2. Explain the MVC pattern in Rails**
-**Answer**: [Click here for detailed answer](ruby-on-rails-basic-interview-questions.md#2-explain-the-mvc-pattern-in-rails)
-
-#### **3. What are Rails conventions?**
-**Answer**: [Click here for detailed answer](ruby-on-rails-basic-interview-questions.md#3-what-are-the-rails-conventions)
-
-#### **4. What is ActiveRecord?**
-**Answer**: [Click here for detailed answer](ruby-on-rails-basic-interview-questions.md#4-what-is-activerecord)
-
-#### **5. Explain Rails associations**
-**Answer**: [Click here for detailed answer](ruby-on-rails-basic-interview-questions.md#5-explain-rails-associations)
-
-#### **6. What are Rails validations?**
-**Answer**: [Click here for detailed answer](ruby-on-rails-basic-interview-questions.md#6-what-are-rails-validations)
-
-#### **7. Explain Rails callbacks**
-**Answer**: [Click here for detailed answer](ruby-on-rails-basic-interview-questions.md#7-explain-rails-callbacks)
-
-#### **8. Explain Rails routing**
-**Answer**: [Click here for detailed answer](ruby-on-rails-basic-interview-questions.md#8-explain-rails-routing)
-
-#### **9. What are strong parameters?**
-**Answer**: [Click here for detailed answer](ruby-on-rails-basic-interview-questions.md#9-what-are-strong-parameters)
-
-#### **10. What are Rails migrations?**
-**Answer**: [Click here for detailed answer](ruby-on-rails-basic-interview-questions.md#14-explain-rails-migrations)
-
-#### **11. What are Rails scopes?**
-**Answer**: [Click here for detailed answer](ruby-on-rails-basic-interview-questions.md#15-what-are-rails-scopes)
-
-#### **12. What is Rack in Rails?**
-**Answer**: [Click here for detailed answer](ruby-on-rails-basic-interview-questions.md#12-what-is-rack-in-rails)
-
-#### **13. What are Rails gems?**
-**Answer**: [Click here for detailed answer](ruby-on-rails-basic-interview-questions.md#13-what-are-rails-gems)
-
-#### **14. What are Rails concerns?**
-**Answer**: [Click here for detailed answer](ruby-on-rails-basic-interview-questions.md#10-what-are-rails-concerns)
-
-#### **15. Explain Rails caching strategies**
-**Answer**: [Click here for detailed answer](ruby-on-rails-basic-interview-questions.md#11-explain-rails-caching-strategies)
-
----
-
-### **ActiveRecord & Database**
-
-#### **16. What is the N+1 query problem?**
-**Answer**: [Click here for detailed answer](ruby-on-rails-activerecord-interview-questions.md#n1-queries)
-
-#### **17. How do you solve N+1 queries?**
-**Answer**: [Click here for detailed answer](ruby-on-rails-activerecord-interview-questions.md#n1-queries)
-
-#### **18. Explain eager loading vs lazy loading**
-**Answer**: [Click here for detailed answer](ruby-on-rails-core-concepts-interview-questions.md#eager-loading-vs-lazy-loading)
-
-#### **19. What are database transactions?**
-**Answer**: [Click here for detailed answer](ruby-on-rails-activerecord-interview-questions.md#transactions)
-
-#### **20. Explain polymorphic associations**
-**Answer**: [Click here for detailed answer](ruby-on-rails-core-concepts-interview-questions.md#polymorphic-association)
-
-#### **21. What is Single Table Inheritance (STI)?**
-**Answer**: [Click here for detailed answer](ruby-on-rails-core-concepts-interview-questions.md#single-table-inheritance)
-
-#### **22. Explain self joins**
-**Answer**: [Click here for detailed answer](ruby-on-rails-core-concepts-interview-questions.md#self-join)
-
-#### **23. What are Rails scopes vs class methods?**
-**Answer**: [Click here for detailed answer](ruby-on-rails-advanced-interview-questions.md#what-are-rails-scopes-vs-class-methods)
-
-#### **24. How do you find duplicate records?**
-**Answer**: [Click here for detailed answer](ruby-on-rails-activerecord-interview-questions.md#find-duplicate-records)
-
-#### **25. How do you find the nth highest salary?**
-**Answer**: [Click here for detailed answer](ruby-on-rails-activerecord-interview-questions.md#find-nth-highest-salary)
-
----
-
-### **Ruby Fundamentals**
-
-#### **26. What is self in Ruby?**
-**Answer**: [Click here for detailed answer](ruby-on-rails-core-concepts-interview-questions.md#self-in-ruby)
-
-#### **27. Explain include vs extend**
-**Answer**: [Click here for detailed answer](ruby-on-rails-core-concepts-interview-questions.md#include-vs-extends)
-
-#### **28. What is mixing in Ruby?**
-**Answer**: [Click here for detailed answer](ruby-on-rails-core-concepts-interview-questions.md#mixing-in-ruby)
-
-#### **29. Explain blocks, procs, and lambdas**
-**Answer**: [Click here for detailed answer](ruby-on-rails-core-concepts-interview-questions.md#block-proc-lambda)
-
-#### **30. What is the difference between strings and symbols?**
-**Answer**: [Click here for detailed answer](ruby-on-rails-core-concepts-interview-questions.md#string-vs-symbol)
-
-#### **31. Explain OOP concepts in Ruby**
-**Answer**: [Click here for detailed answer](ruby-on-rails-core-concepts-interview-questions.md#oops-concepts)
-
-#### **32. What is the difference between require and load?**
-**Answer**: [Click here for detailed answer](ruby-on-rails-core-concepts-interview-questions.md#require-vs-load)
-
-#### **33. Explain access control (private, protected, public)**
-**Answer**: [Click here for detailed answer](ruby-on-rails-core-concepts-interview-questions.md#access-control)
-
-#### **34. What is the difference between select, collect, and map?**
-**Answer**: [Click here for detailed answer](ruby-on-rails-core-concepts-interview-questions.md#select-collect-map-difference)
-
-#### **35. Explain module vs class**
-**Answer**: [Click here for detailed answer](ruby-on-rails-core-concepts-interview-questions.md#module-vs-class)
-
----
-
-### **Security & Performance**
-
-#### **36. What are common Rails security concerns?**
-**Answer**: [Click here for detailed answer](ruby-on-rails-basic-interview-questions.md#18-what-are-common-rails-security-concerns)
-
-#### **37. How do you prevent SQL injection?**
-**Answer**: [Click here for detailed answer](ruby-on-rails-advanced-interview-questions.md#explain-rails-security-best-practices-in-detail)
-
-#### **38. How do you prevent XSS attacks?**
-**Answer**: [Click here for detailed answer](ruby-on-rails-advanced-interview-questions.md#explain-rails-security-best-practices-in-detail)
-
-#### **39. How do you optimize Rails performance?**
-**Answer**: [Click here for detailed answer](ruby-on-rails-advanced-interview-questions.md#explain-rails-performance-optimization-in-detail)
-
-#### **40. What are Rails caching strategies?**
-**Answer**: [Click here for detailed answer](ruby-on-rails-advanced-interview-questions.md#explain-rails-caching-strategies-in-detail)
-
-#### **41. How do you handle background jobs?**
-**Answer**: [Click here for detailed answer](ruby-on-rails-advanced-interview-questions.md#explain-rails-background-job-processing)
-
-#### **42. What is Sidekiq?**
-**Answer**: [Click here for detailed answer](ruby-on-rails-advanced-interview-questions.md#what-is-sidekiq)
-
-#### **43. How do you implement authentication?**
-**Answer**: [Click here for detailed answer](ruby-on-rails-basic-interview-questions.md#19-how-does-rails-handle-authentication)
-
-#### **44. How do you implement authorization?**
-**Answer**: [Click here for detailed answer](ruby-on-rails-advanced-interview-questions.md#explain-rails-security-best-practices-in-detail)
-
-#### **45. What are Rails security best practices?**
-**Answer**: [Click here for detailed answer](ruby-on-rails-advanced-interview-questions.md#explain-rails-security-best-practices-in-detail)
-
----
-
-### **Advanced Topics**
-
-#### **46. What are Rails engines?**
-**Answer**: [Click here for detailed answer](ruby-on-rails-advanced-interview-questions.md#what-are-rails-engines)
-
-#### **47. Explain Rails API design patterns**
-**Answer**: [Click here for detailed answer](ruby-on-rails-advanced-interview-questions.md#explain-rails-api-design-patterns)
-
-#### **48. What are Rails testing strategies?**
-**Answer**: [Click here for detailed answer](ruby-on-rails-advanced-interview-questions.md#explain-rails-testing-strategies)
-
-#### **49. How do you deploy Rails applications?**
-**Answer**: [Click here for detailed answer](ruby-on-rails-advanced-interview-questions.md#explain-rails-deployment-and-devops)
-
-#### **50. What are Rails architectural patterns?**
-**Answer**: [Click here for detailed answer](ruby-on-rails-advanced-interview-questions.md#explain-rails-application-architecture-patterns)
+46. [What are Rails engines?](ruby-on-rails-advanced-interview-questions.md#what-are-rails-engines)
+47. [Explain Rails API design patterns](ruby-on-rails-advanced-interview-questions.md#explain-rails-api-design-patterns)
+48. [What are Rails testing strategies?](ruby-on-rails-advanced-interview-questions.md#explain-rails-testing-strategies)
+49. [How do you deploy Rails applications?](ruby-on-rails-advanced-interview-questions.md#explain-rails-deployment-and-devops)
+50. [What are Rails architectural patterns?](ruby-on-rails-advanced-interview-questions.md#explain-rails-application-architecture-patterns)
 
 ---
 
@@ -264,11 +92,12 @@
 
 ## **📁 Related Files for Detailed Answers:**
 
-- **[Basic to Mid-Level Questions](ruby-on-rails-basic-interview-questions.md)** - Fundamental Rails concepts (Questions 1-27)
-- **[Advanced Rails Questions](ruby-on-rails-advanced-interview-questions.md)** - Senior-level Rails concepts (Questions 28-50)
-- **[Core Ruby & Rails Concepts](ruby-on-rails-core-concepts-interview-questions.md)** - Language fundamentals and advanced concepts
-- **[ActiveRecord Questions](ruby-on-rails-activerecord-interview-questions.md)** - Database and ORM specific questions
+- **[Main Rails Interview Questions](ruby-on-rails-interview-questions.md)** - Comprehensive Rails questions with detailed answers (Questions 1-15, 16-17, 19)
+- **[Advanced Rails Questions](ruby-on-rails-advanced-interview-questions.md)** - Senior-level Rails concepts and architecture patterns
+- **[Core Ruby & Rails Concepts](ruby-on-rails-core-concepts-interview-questions.md)** - Ruby fundamentals and advanced concepts (Questions 18, 20-22, 26-35)
+- **[ActiveRecord Questions](ruby-on-rails-activerecord-interview-questions.md)** - Database query problems and specific ActiveRecord challenges (Questions 22, 24-25)
 - **[Additional Concepts](ruby-on-rails-additional-concepts-interview-questions.md)** - Extra Rails concepts and patterns
+- **[Situation-Based Questions](ruby-on-rails-situation-based-interview-questions.md)** - Real-world scenario questions
 
 ---
 

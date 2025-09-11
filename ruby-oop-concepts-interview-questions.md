@@ -8,6 +8,7 @@
 5. [Modules and Mixins](#modules-and-mixins)
 6. [Advanced OOP Concepts](#advanced-oop-concepts)
 7. [Design Patterns](#design-patterns)
+8. [SOLID Principles](#solid-principles)
 
 ---
 
@@ -876,6 +877,608 @@ end
 
 ---
 
+## SOLID Principles
+
+### Q1: What are SOLID principles and why are they important in Ruby on Rails?
+
+**Answer:** SOLID is an acronym for five object-oriented design principles that help create maintainable, flexible, and scalable software:
+
+1. **S - Single Responsibility Principle (SRP)**
+2. **O - Open/Closed Principle (OCP)**
+3. **L - Liskov Substitution Principle (LSP)**
+4. **I - Interface Segregation Principle (ISP)**
+5. **D - Dependency Inversion Principle (DIP)**
+
+These principles are crucial in Rails applications for:
+- **Maintainability**: Easier to modify and extend code
+- **Testability**: Each class has a single responsibility
+- **Reusability**: Classes can be reused in different contexts
+- **Flexibility**: Easy to swap implementations
+- **Reduced Coupling**: Classes depend on abstractions
+
+### Q2: Explain Single Responsibility Principle with Rails examples.
+
+**Answer:** A class should have only one reason to change - it should have only one job or responsibility.
+
+**❌ Bad Example:**
+```ruby
+class User
+  def initialize(name, email)
+    @name = name
+    @email = email
+  end
+  
+  def save
+    # Database logic
+    User.create(name: @name, email: @email)
+  end
+  
+  def send_welcome_email
+    # Email logic
+    UserMailer.welcome(@email).deliver_now
+  end
+  
+  def validate_email
+    # Validation logic
+    @email.match?(/\A[\w+\-.]+@[a-z\d\-]+(\.[a-z\d\-]+)*\.[a-z]+\z/i)
+  end
+end
+```
+
+**✅ Good Example:**
+```ruby
+# User model - only handles data and basic validations
+class User < ApplicationRecord
+  validates :email, presence: true, format: { with: URI::MailTo::EMAIL_REGEXP }
+  validates :name, presence: true
+end
+
+# Email service - handles email operations
+class EmailService
+  def self.send_welcome_email(user)
+    UserMailer.welcome(user.email).deliver_now
+  end
+end
+
+# User controller - handles HTTP requests
+class UsersController < ApplicationController
+  def create
+    @user = User.new(user_params)
+    if @user.save
+      EmailService.send_welcome_email(@user)
+      redirect_to @user
+    else
+      render :new
+    end
+  end
+end
+```
+
+### Q3: How does Open/Closed Principle work in Ruby on Rails?
+
+**Answer:** Software entities should be open for extension but closed for modification.
+
+**❌ Bad Example:**
+```ruby
+class PaymentProcessor
+  def process_payment(payment_type, amount)
+    case payment_type
+    when 'credit_card'
+      puts "Processing credit card payment of $#{amount}"
+    when 'paypal'
+      puts "Processing PayPal payment of $#{amount}"
+    when 'stripe'
+      puts "Processing Stripe payment of $#{amount}"
+    end
+  end
+end
+```
+
+**✅ Good Example:**
+```ruby
+# Base payment processor
+class PaymentProcessor
+  def process_payment(amount)
+    raise NotImplementedError, "Subclasses must implement process_payment"
+  end
+end
+
+# Specific payment processors
+class CreditCardProcessor < PaymentProcessor
+  def process_payment(amount)
+    puts "Processing credit card payment of $#{amount}"
+  end
+end
+
+class PayPalProcessor < PaymentProcessor
+  def process_payment(amount)
+    puts "Processing PayPal payment of $#{amount}"
+  end
+end
+
+# Usage
+class Order
+  def process_payment(payment_processor, amount)
+    payment_processor.process_payment(amount)
+  end
+end
+```
+
+### Q4: Explain Liskov Substitution Principle with examples.
+
+**Answer:** Objects of a superclass should be replaceable with objects of its subclasses without breaking the application.
+
+**❌ Bad Example:**
+```ruby
+class Bird
+  def fly
+    puts "Flying"
+  end
+end
+
+class Eagle < Bird
+  def fly
+    puts "Eagle flying high"
+  end
+end
+
+class Penguin < Bird
+  def fly
+    raise "Penguins can't fly!"
+  end
+end
+```
+
+**✅ Good Example:**
+```ruby
+class Bird
+  def move
+    raise NotImplementedError
+  end
+end
+
+class FlyingBird < Bird
+  def move
+    fly
+  end
+  
+  def fly
+    puts "Flying"
+  end
+end
+
+class SwimmingBird < Bird
+  def move
+    swim
+  end
+  
+  def swim
+    puts "Swimming"
+  end
+end
+
+class Eagle < FlyingBird
+  def fly
+    puts "Eagle flying high"
+  end
+end
+
+class Penguin < SwimmingBird
+  def swim
+    puts "Penguin swimming gracefully"
+  end
+end
+```
+
+### Q5: How does Interface Segregation Principle apply to Ruby modules?
+
+**Answer:** Clients should not be forced to depend on interfaces they don't use.
+
+**❌ Bad Example:**
+```ruby
+module Worker
+  def work
+    raise NotImplementedError
+  end
+  
+  def eat
+    raise NotImplementedError
+  end
+  
+  def sleep
+    raise NotImplementedError
+  end
+end
+
+class Robot
+  include Worker
+  
+  def work
+    puts "Robot working"
+  end
+  
+  def eat
+    raise "Robots don't eat!"
+  end
+  
+  def sleep
+    raise "Robots don't sleep!"
+  end
+end
+```
+
+**✅ Good Example:**
+```ruby
+# Segregated interfaces
+module Workable
+  def work
+    raise NotImplementedError
+  end
+end
+
+module Eatable
+  def eat
+    raise NotImplementedError
+  end
+end
+
+module Sleepable
+  def sleep
+    raise NotImplementedError
+  end
+end
+
+class Human
+  include Workable
+  include Eatable
+  include Sleepable
+  
+  def work
+    puts "Human working"
+  end
+  
+  def eat
+    puts "Human eating"
+  end
+  
+  def sleep
+    puts "Human sleeping"
+  end
+end
+
+class Robot
+  include Workable
+  
+  def work
+    puts "Robot working"
+  end
+end
+```
+
+### Q6: Explain Dependency Inversion Principle in Rails context.
+
+**Answer:** High-level modules should not depend on low-level modules. Both should depend on abstractions.
+
+**❌ Bad Example:**
+```ruby
+class EmailNotifier
+  def send_notification(message)
+    puts "Email: #{message}"
+  end
+end
+
+class OrderService
+  def initialize
+    @notifier = EmailNotifier.new  # Direct dependency
+  end
+  
+  def process_order(order)
+    @notifier.send_notification("Order #{order.id} processed")
+  end
+end
+```
+
+**✅ Good Example:**
+```ruby
+# Abstract interface
+class NotificationService
+  def send_notification(message)
+    raise NotImplementedError
+  end
+end
+
+# Concrete implementations
+class EmailNotifier < NotificationService
+  def send_notification(message)
+    puts "Email: #{message}"
+  end
+end
+
+class SMSNotifier < NotificationService
+  def send_notification(message)
+    puts "SMS: #{message}"
+  end
+end
+
+# High-level module depends on abstraction
+class OrderService
+  def initialize(notifier)
+    @notifier = notifier  # Depends on abstraction
+  end
+  
+  def process_order(order)
+    @notifier.send_notification("Order #{order.id} processed")
+  end
+end
+
+# Usage - dependency injection
+order_service = OrderService.new(EmailNotifier.new)
+```
+
+### Q7: How do you implement SOLID principles in Rails applications?
+
+**Answer:** Here are common Rails patterns that follow SOLID principles:
+
+**1. Service Objects (SRP + DIP):**
+```ruby
+class UserRegistrationService
+  def initialize(user_params, notification_service = EmailNotifier.new)
+    @user_params = user_params
+    @notification_service = notification_service
+  end
+  
+  def call
+    user = User.create(@user_params)
+    if user.persisted?
+      @notification_service.send_welcome_email(user)
+      user
+    else
+      user
+    end
+  end
+end
+```
+
+**2. Form Objects (SRP):**
+```ruby
+class UserRegistrationForm
+  include ActiveModel::Model
+  include ActiveModel::Attributes
+  
+  attribute :name, :string
+  attribute :email, :string
+  attribute :password, :string
+  
+  validates :name, presence: true
+  validates :email, presence: true, format: { with: URI::MailTo::EMAIL_REGEXP }
+  validates :password, presence: true, length: { minimum: 8 }
+  
+  def save
+    return false unless valid?
+    User.create(name: name, email: email, password: password)
+  end
+end
+```
+
+**3. Policy Objects (SRP):**
+```ruby
+class PostPolicy
+  def initialize(user, post)
+    @user = user
+    @post = post
+  end
+  
+  def show?
+    @post.published? || @user.admin? || @post.author == @user
+  end
+  
+  def edit?
+    @post.author == @user || @user.admin?
+  end
+  
+  def destroy?
+    @user.admin?
+  end
+end
+```
+
+**4. Repository Pattern (DIP):**
+```ruby
+class UserRepository
+  def find(id)
+    User.find(id)
+  end
+  
+  def create(attributes)
+    User.create(attributes)
+  end
+  
+  def update(id, attributes)
+    user = find(id)
+    user.update(attributes)
+    user
+  end
+end
+
+class UserService
+  def initialize(repository = UserRepository.new)
+    @repository = repository
+  end
+  
+  def create_user(attributes)
+    @repository.create(attributes)
+  end
+end
+```
+
+### Q8: What are the benefits of following SOLID principles in Rails applications?
+
+**Answer:** Benefits include:
+
+1. **Maintainability**: Easier to modify and extend code
+2. **Testability**: Each class has a single responsibility, making testing simpler
+3. **Reusability**: Classes can be reused in different contexts
+4. **Flexibility**: Easy to swap implementations
+5. **Reduced Coupling**: Classes depend on abstractions, not concrete implementations
+6. **Better Code Organization**: Clear separation of concerns
+7. **Easier Debugging**: Issues are isolated to specific classes
+8. **Team Collaboration**: Multiple developers can work on different parts without conflicts
+
+### Q9: How do you refactor existing Rails code to follow SOLID principles?
+
+**Answer:** Common refactoring techniques:
+
+**1. Extract Service Objects:**
+```ruby
+# Before
+class UsersController < ApplicationController
+  def create
+    @user = User.new(user_params)
+    if @user.save
+      UserMailer.welcome(@user).deliver_now
+      redirect_to @user
+    else
+      render :new
+    end
+  end
+end
+
+# After
+class UsersController < ApplicationController
+  def create
+    @user = UserRegistrationService.new(user_params).call
+    if @user.persisted?
+      redirect_to @user
+    else
+      render :new
+    end
+  end
+end
+```
+
+**2. Extract Form Objects:**
+```ruby
+# Before
+class UsersController < ApplicationController
+  def create
+    @user = User.new(user_params)
+    @user.profile = Profile.new(profile_params)
+    if @user.save && @user.profile.save
+      redirect_to @user
+    else
+      render :new
+    end
+  end
+end
+
+# After
+class UsersController < ApplicationController
+  def create
+    @form = UserRegistrationForm.new(user_params.merge(profile_params))
+    if @form.save
+      redirect_to @form.user
+    else
+      render :new
+    end
+  end
+end
+```
+
+**3. Extract Policy Objects:**
+```ruby
+# Before
+class PostsController < ApplicationController
+  def show
+    @post = Post.find(params[:id])
+    unless @post.published? || current_user.admin? || @post.author == current_user
+      redirect_to root_path
+    end
+  end
+end
+
+# After
+class PostsController < ApplicationController
+  def show
+    @post = Post.find(params[:id])
+    authorize @post, :show?
+  end
+end
+```
+
+### Q10: What are common violations of SOLID principles in Rails applications?
+
+**Answer:** Common violations include:
+
+**1. Fat Models (SRP violation):**
+```ruby
+# Bad - User model doing too much
+class User < ApplicationRecord
+  def send_welcome_email
+    UserMailer.welcome(self).deliver_now
+  end
+  
+  def generate_report
+    # Complex report generation logic
+  end
+  
+  def calculate_metrics
+    # Complex calculation logic
+  end
+end
+```
+
+**2. Fat Controllers (SRP violation):**
+```ruby
+# Bad - Controller doing business logic
+class OrdersController < ApplicationController
+  def create
+    @order = Order.new(order_params)
+    @order.calculate_tax
+    @order.apply_discount
+    @order.calculate_shipping
+    if @order.save
+      send_confirmation_email
+      update_inventory
+      redirect_to @order
+    end
+  end
+end
+```
+
+**3. Direct Dependencies (DIP violation):**
+```ruby
+# Bad - Direct dependency on concrete class
+class OrderService
+  def initialize
+    @payment_processor = StripeProcessor.new
+  end
+end
+```
+
+**4. God Classes (SRP violation):**
+```ruby
+# Bad - One class handling everything
+class ApplicationManager
+  def handle_user_registration
+    # User logic
+  end
+  
+  def process_payment
+    # Payment logic
+  end
+  
+  def send_notifications
+    # Notification logic
+  end
+  
+  def generate_reports
+    # Report logic
+  end
+end
+```
+
+---
+
 ## Practice Questions
 
 ### Q21: Create a class hierarchy for different types of employees with appropriate methods and demonstrate polymorphism.
@@ -898,6 +1501,7 @@ end
 4. **Polymorphism**: Method overriding and duck typing
 5. **Modules**: Provide mixin functionality and namespace organization
 6. **Design Patterns**: Singleton, Factory, Observer, and others can be implemented elegantly in Ruby
-7. **Best Practices**: Focus on readability, maintainability, and following Ruby conventions
+7. **SOLID Principles**: Five principles for maintainable, flexible, and scalable object-oriented design
+8. **Best Practices**: Focus on readability, maintainability, and following Ruby conventions
 
 Remember to practice implementing these concepts and understand when to use each approach in real-world scenarios.

@@ -21,6 +21,7 @@
 - [Single Table Inheritance (STI)](#single-table-inheritance)
 - [Self Join](#self-join)
 - [Web server and Application server](#web-server-vs-application-server)
+- [Rails Request-Response Cycle](#rails-request-response-cycle)
 - [Helper](#helper)
 - [Module](#module)
 - [What is Mixing in Ruby?](#mixing-in-ruby)
@@ -46,8 +47,8 @@
 ---
 
 ## Related Files
-- **[Basic to Mid-Level Questions](ruby-on-rails-basic-interview-questions.md)** - Fundamental Rails concepts (Questions 1-27)
-- **[Advanced Rails Questions](ruby-on-rails-advanced-interview-questions.md)** - Senior-level Rails concepts (Questions 28-42)
+- **[Most Frequently Asked Questions](ruby-on-rails-frequently-asked-questions.md)** - Top 50 most commonly asked Rails interview questions
+- **[Advanced Rails Questions](ruby-on-rails-advanced-interview-questions.md)** - Senior-level Rails concepts
 
 ---
 
@@ -908,6 +909,97 @@ threads threads_count, threads_count
 port ENV.fetch("PORT") { 3000 }
 environment ENV.fetch("RAILS_ENV") { "development" }
 ```
+
+### <a id="rails-request-response-cycle"></a>**Rails Request-Response Cycle**
+
+**Q: Explain the Rails request-response cycle in detail.**
+
+The Rails request-response cycle is the fundamental process by which a Rails application handles incoming HTTP requests and generates appropriate responses. It follows the **MVC (Model-View-Controller)** architectural pattern and implements the **Rack** interface standard.
+
+**Theoretical Foundation:**
+- **MVC Pattern**: Separates concerns into Models (data/business logic), Views (presentation), and Controllers (request handling)
+- **Rack Interface**: Standardized interface between web servers and Ruby web applications
+- **Convention over Configuration**: Rails uses sensible defaults to minimize configuration
+
+**Request-Response Flow:**
+
+**1. Web Server Layer**
+- **Purpose**: Entry point for all HTTP requests
+- **Components**: Nginx, Apache, or similar
+- **Responsibilities**: 
+  - Handles static assets (CSS, JS, images)
+  - Load balancing and SSL termination
+  - Proxies dynamic requests to application server
+
+**2. Application Server Layer**
+- **Purpose**: Manages Ruby application processes
+- **Components**: Puma, Unicorn, Passenger
+- **Responsibilities**:
+  - Manages Ruby processes/threads
+  - Implements Rack interface
+  - Passes requests to middleware stack
+
+**3. Rack Middleware Stack**
+- **Purpose**: Pre/post processing of requests and responses
+- **Examples**: Session handling, cookies, logging, authentication
+- **Flow**: Request → Middleware Chain → Rails App → Middleware Chain → Response
+
+**4. Rails Router (config/routes.rb)**
+- **Purpose**: URL pattern matching and controller dispatch
+- **Process**: Maps HTTP verb + URL pattern to controller#action
+```ruby
+# Example route
+get '/users/:id', to: 'users#show'
+# Matches: GET /users/123 → UsersController#show with params[:id] = "123"
+```
+
+**5. Controller Action**
+- **Purpose**: Orchestrates request handling and response generation
+- **Responsibilities**:
+  - Receives and validates request parameters
+  - Performs business logic
+  - Interacts with models
+  - Prepares data for views
+  - Handles authentication/authorization
+```ruby
+class UsersController < ApplicationController
+  def show
+    @user = User.find(params[:id])  # Model interaction
+    # Implicitly renders app/views/users/show.html.erb
+  end
+end
+```
+
+**6. Model Layer (ActiveRecord)**
+- **Purpose**: Data persistence and business logic
+- **Responsibilities**:
+  - Database operations (CRUD)
+  - Data validation
+  - Associations and relationships
+  - Business rules implementation
+```ruby
+class User < ApplicationRecord
+  validates :email, presence: true, uniqueness: true
+  has_many :posts, dependent: :destroy
+end
+```
+
+**7. View Layer**
+- **Purpose**: Response rendering and presentation
+- **Templates**: ERB, HAML, Slim, or JSON/XML for APIs
+- **Responsibilities**:
+  - Renders HTML/JSON/XML responses
+  - Uses instance variables from controller
+  - Handles presentation logic only
+
+**8. Response Flow (Reverse Path)**
+- View renders response → Controller returns response → Rack middleware processes → Application server → Web server → Client
+
+**Key Architectural Principles:**
+- **Single Responsibility**: Each layer has a specific purpose
+- **Separation of Concerns**: Clear boundaries between layers
+- **Convention over Configuration**: Sensible defaults reduce setup
+- **RESTful Design**: Standard HTTP verbs and URL patterns
 
 ### <a id="helper"></a>**Helper**
 ```ruby
@@ -2266,5 +2358,6 @@ User.all.select(&:active?).map(&:name)  # Loads all records into memory
 
 ## Next Steps
 Ready for more advanced topics? Check out:
-- **[Basic to Mid-Level Questions](ruby-on-rails-basic-interview-questions.md)** - Fundamental Rails concepts
+- **[Most Frequently Asked Questions](ruby-on-rails-frequently-asked-questions.md)** - Top 50 most commonly asked Rails interview questions
 - **[Advanced Rails Questions](ruby-on-rails-advanced-interview-questions.md)** - Senior-level Rails concepts
+- **[ActiveRecord Questions](ruby-on-rails-activerecord-interview-questions.md)** - Database and ORM specific questions
