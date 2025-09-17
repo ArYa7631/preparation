@@ -14,7 +14,7 @@
 
 ## Classes and Objects
 
-### Q1: What is a class in Ruby and how do you define one?
+### <a id="what-is-a-class-in-ruby"></a>**What is a class in Ruby and how do you define one?**
 **Answer:** A class in Ruby is a blueprint for creating objects. It defines the structure and behavior that objects of that class will have.
 
 ```ruby
@@ -39,7 +39,7 @@ puts person.introduce
 - Instance variables start with `@`
 - Objects are created using `new` method
 
-### Q2: What is the difference between instance variables and class variables in Ruby?
+### <a id="instance-variables-vs-class-variables"></a>**What is the difference between instance variables and class variables in Ruby?**
 **Answer:** Instance variables belong to individual objects, while class variables are shared across all instances of a class.
 
 ```ruby
@@ -70,7 +70,7 @@ counter1.display_counts  # Instance: 1, Class: 2
 counter2.display_counts  # Instance: 1, Class: 2
 ```
 
-### Q3: What are accessor methods in Ruby?
+### <a id="accessor-methods-in-ruby"></a>**What are accessor methods in Ruby?**
 **Answer:** Accessor methods provide controlled access to instance variables. Ruby provides `attr_reader`, `attr_writer`, and `attr_accessor` for convenience.
 
 ```ruby
@@ -96,7 +96,7 @@ puts student.name             # Can read name
 
 ## Inheritance
 
-### Q4: How does inheritance work in Ruby?
+### <a id="how-inheritance-works-in-ruby"></a>**How does inheritance work in Ruby?**
 **Answer:** Inheritance allows a class to inherit methods and attributes from another class. Ruby supports single inheritance.
 
 ```ruby
@@ -134,7 +134,7 @@ puts cat.speak      # "Meow!"
 puts dog.fetch      # "Buddy fetches the ball"
 ```
 
-### Q5: What is method overriding in Ruby?
+### <a id="method-overriding-in-ruby"></a>**What is method overriding in Ruby?**
 **Answer:** Method overriding occurs when a subclass provides a specific implementation of a method that is already defined in its parent class.
 
 ```ruby
@@ -163,7 +163,7 @@ puts car.start_engine  # "Electric motor activating silently"
 puts car.fuel_type     # "Electricity"
 ```
 
-### Q6: What is the `super` keyword and how is it used?
+### <a id="super-keyword-in-ruby"></a>**What is the `super` keyword and how is it used?**
 **Answer:** The `super` keyword calls the parent class's method of the same name, allowing you to extend rather than completely override parent behavior.
 
 ```ruby
@@ -197,7 +197,7 @@ puts manager.display_info  # "Name: John, Salary: $80000, Department: Engineerin
 
 ## Encapsulation
 
-### Q7: How does Ruby implement encapsulation?
+### <a id="encapsulation-in-ruby"></a>**How does Ruby implement encapsulation?**
 **Answer:** Ruby implements encapsulation through access control methods (`public`, `private`, `protected`) and instance variables that are not directly accessible from outside the class.
 
 ```ruby
@@ -253,7 +253,7 @@ puts account.balance           # Public method
 # account.generate_account_number  # Error: private method
 ```
 
-### Q8: What is the difference between `private`, `protected`, and `public` methods?
+### <a id="private-protected-public-methods"></a>**What is the difference between `private`, `protected`, and `public` methods?**
 **Answer:** 
 - **Public**: Can be called from anywhere
 - **Protected**: Can be called by objects of the same class or subclasses
@@ -296,7 +296,7 @@ puts example.public_method  # Works
 
 ## Polymorphism
 
-### Q9: What is polymorphism in Ruby and how is it implemented?
+### <a id="polymorphism-in-ruby"></a>**What is polymorphism in Ruby and how is it implemented?**
 **Answer:** Polymorphism allows objects of different classes to respond to the same method call in different ways. Ruby implements this through method overriding and duck typing.
 
 ```ruby
@@ -345,7 +345,7 @@ shapes.each do |shape|
 end
 ```
 
-### Q10: What is duck typing in Ruby?
+### <a id="duck-typing-in-ruby"></a>**What is duck typing in Ruby?**
 **Answer:** Duck typing is a programming concept where an object's suitability is determined by its ability to respond to certain methods, rather than its class type.
 
 ```ruby
@@ -389,7 +389,7 @@ pond.accept_swimmer(Robot.new)
 
 ## Modules and Mixins
 
-### Q11: What are modules in Ruby and how do they differ from classes?
+### <a id="modules-in-ruby"></a>**What are modules in Ruby and how do they differ from classes?**
 **Answer:** Modules are collections of methods and constants that can be included in classes. Unlike classes, modules cannot be instantiated and don't support inheritance.
 
 ```ruby
@@ -435,7 +435,7 @@ puts fish.swim    # "Swimming in the water"
 # fish.fly        # Error: method not found
 ```
 
-### Q12: What is the difference between `include` and `extend`?
+### <a id="include-vs-extend"></a>**What is the difference between `include` and `extend`?**
 **Answer:** 
 - `include` adds module methods as instance methods
 - `extend` adds module methods as class methods
@@ -470,7 +470,7 @@ puts Robot.farewell      # "Goodbye!" (class method)
 # robot.greet            # Error: method not found
 ```
 
-### Q13: What is the method lookup path in Ruby?
+### <a id="method-lookup-path-in-ruby"></a>**What is the method lookup path in Ruby?**
 **Answer:** The method lookup path determines the order in which Ruby searches for methods when they're called on an object.
 
 ```ruby
@@ -513,7 +513,7 @@ puts Child.ancestors
 
 ## Advanced OOP Concepts
 
-### Q14: What are singleton methods and how do you define them?
+### <a id="singleton-methods-in-ruby"></a>**What are singleton methods and how do you define them?**
 **Answer:** Singleton methods are methods that belong to a specific object instance, not to the class.
 
 ```ruby
@@ -543,7 +543,7 @@ puts person2.introduce  # "Hi, my name is Bob"
 # person1.introduce     # Error: method not found
 ```
 
-### Q15: What is the `method_missing` method and how is it used?
+### <a id="method-missing-in-ruby"></a>**What is the `method_missing` method and how is it used?**
 **Answer:** `method_missing` is a special method that gets called when an object receives a method call for a method that doesn't exist.
 
 ```ruby
@@ -572,7 +572,7 @@ puts obj.set_age(25)     # "Set age to 25"
 puts obj.respond_to?(:get_name)  # true
 ```
 
-### Q16: What are class methods and how do you define them?
+### <a id="class-methods-in-ruby"></a>**What are class methods and how do you define them?**
 **Answer:** Class methods are methods that belong to the class itself, not to instances of the class.
 
 ```ruby
@@ -609,11 +609,241 @@ puts Counter.total_count    # 3
 puts Counter.display_info   # "Counter class with 3 instances"
 ```
 
+### <a id="metaprogramming-in-ruby"></a>**What is metaprogramming in Ruby and how is it used?**
+**Answer:** Metaprogramming is the ability to write code that writes, modifies, or analyzes other code at runtime. Ruby is particularly powerful for metaprogramming due to its dynamic nature.
+
+**Key Metaprogramming Concepts:**
+
+**1. Dynamic Method Definition**
+```ruby
+class User
+  def initialize(name)
+    @name = name
+  end
+  
+  # Dynamically define methods
+  [:name, :email, :age].each do |attribute|
+    define_method(attribute) do
+      instance_variable_get("@#{attribute}")
+    end
+    
+    define_method("#{attribute}=") do |value|
+      instance_variable_set("@#{attribute}", value)
+    end
+  end
+end
+
+user = User.new("John")
+user.name = "John Doe"
+user.email = "john@example.com"
+puts user.name  # "John Doe"
+```
+
+**2. Method Missing and Dynamic Dispatch**
+```ruby
+class FlexibleObject
+  def method_missing(method_name, *args, &block)
+    if method_name.to_s.start_with?('get_')
+      attribute = method_name.to_s[4..-1]
+      instance_variable_get("@#{attribute}")
+    elsif method_name.to_s.start_with?('set_')
+      attribute = method_name.to_s[4..-1]
+      value = args.first
+      instance_variable_set("@#{attribute}", value)
+    else
+      super
+    end
+  end
+  
+  def respond_to_missing?(method_name, include_private = false)
+    method_name.to_s.start_with?('get_', 'set_') || super
+  end
+end
+
+obj = FlexibleObject.new
+obj.set_name("Alice")
+puts obj.get_name  # "Alice"
+```
+
+**3. Class Evaluation and Dynamic Classes**
+```ruby
+# Create classes dynamically
+class_name = "DynamicUser"
+attributes = [:name, :email, :age]
+
+# Create class dynamically
+dynamic_class = Class.new do
+  attr_accessor *attributes
+  
+  def initialize(attrs = {})
+    attrs.each do |key, value|
+      send("#{key}=", value)
+    end
+  end
+  
+  def to_s
+    "#{self.class.name}: #{attributes.map { |attr| "#{attr}=#{send(attr)}" }.join(', ')}"
+  end
+end
+
+# Register the class
+Object.const_set(class_name, dynamic_class)
+
+# Use the dynamically created class
+user = DynamicUser.new(name: "John", email: "john@example.com", age: 30)
+puts user  # "DynamicUser: name=John, email=john@example.com, age=30"
+```
+
+**4. Module Inclusion and Extension**
+```ruby
+module Timestampable
+  def self.included(base)
+    base.extend(ClassMethods)
+    base.class_eval do
+      before_save :set_timestamps
+    end
+  end
+  
+  def set_timestamps
+    self.created_at ||= Time.current
+    self.updated_at = Time.current
+  end
+  
+  module ClassMethods
+    def recent
+      where('created_at > ?', 1.day.ago)
+    end
+  end
+end
+
+class Post < ApplicationRecord
+  include Timestampable
+end
+
+# The module automatically adds methods and callbacks
+```
+
+**5. Dynamic Attribute Access**
+```ruby
+class ConfigurableObject
+  def initialize(config = {})
+    @config = config
+  end
+  
+  def method_missing(method_name, *args)
+    if @config.key?(method_name)
+      @config[method_name]
+    elsif method_name.to_s.end_with?('=')
+      key = method_name.to_s[0..-2].to_sym
+      @config[key] = args.first
+    else
+      super
+    end
+  end
+  
+  def respond_to_missing?(method_name, include_private = false)
+    @config.key?(method_name) || method_name.to_s.end_with?('=') || super
+  end
+end
+
+config = ConfigurableObject.new(debug: true, timeout: 30)
+puts config.debug     # true
+puts config.timeout   # 30
+config.debug = false
+puts config.debug     # false
+```
+
+**6. Metaprogramming in Rails (ActiveRecord)**
+```ruby
+class User < ApplicationRecord
+  # Rails uses metaprogramming for associations
+  has_many :posts
+  belongs_to :company
+  
+  # Rails uses metaprogramming for validations
+  validates :email, presence: true, uniqueness: true
+  
+  # Rails uses metaprogramming for scopes
+  scope :active, -> { where(active: true) }
+  
+  # Rails uses metaprogramming for callbacks
+  before_save :normalize_email
+  after_create :send_welcome_email
+end
+
+# Behind the scenes, Rails dynamically creates methods like:
+# - user.posts (from has_many :posts)
+# - user.company (from belongs_to :company)
+# - User.active (from scope :active)
+```
+
+**7. Advanced Metaprogramming: DSL Creation**
+```ruby
+class ApiBuilder
+  def self.build(&block)
+    builder = new
+    builder.instance_eval(&block)
+    builder
+  end
+  
+  def endpoint(name, &block)
+    define_singleton_method(name) do |*args|
+      Endpoint.new(name, args, &block)
+    end
+  end
+  
+  def get(path)
+    @method = :get
+    @path = path
+  end
+  
+  def post(path)
+    @method = :post
+    @path = path
+  end
+end
+
+class Endpoint
+  def initialize(name, args, &block)
+    @name = name
+    @args = args
+    @block = block
+  end
+end
+
+# Usage - creating a DSL
+api = ApiBuilder.build do
+  endpoint :users do
+    get '/users'
+  end
+  
+  endpoint :create_user do
+    post '/users'
+  end
+end
+
+puts api.users  # Creates endpoint for users
+```
+
+**Benefits of Metaprogramming:**
+- **DRY (Don't Repeat Yourself)**: Eliminate code duplication
+- **Flexibility**: Create adaptable and configurable code
+- **DSL Creation**: Build domain-specific languages
+- **Framework Development**: Create powerful abstractions
+- **Dynamic Behavior**: Runtime code modification
+
+**Best Practices:**
+- Use sparingly - can make code hard to understand
+- Document metaprogramming code thoroughly
+- Test metaprogramming code extensively
+- Prefer explicit over implicit when possible
+- Use `respond_to_missing?` with `method_missing`
+
 ---
 
 ## Design Patterns
 
-### Q17: How would you implement the Singleton pattern in Ruby?
+### <a id="singleton-pattern-in-ruby"></a>**How would you implement the Singleton pattern in Ruby?**
 **Answer:** The Singleton pattern ensures that a class has only one instance and provides a global point of access to it.
 
 ```ruby
@@ -662,7 +892,7 @@ alt_db2 = AlternativeDatabaseConnection.instance
 puts alt_db1.object_id == alt_db2.object_id  # true
 ```
 
-### Q18: How would you implement the Factory pattern in Ruby?
+### <a id="factory-pattern-in-ruby"></a>**How would you implement the Factory pattern in Ruby?**
 **Answer:** The Factory pattern provides an interface for creating objects without specifying their exact class.
 
 ```ruby
@@ -719,7 +949,7 @@ animals = [
 animals.each { |animal| puts animal.speak }
 ```
 
-### Q19: How would you implement the Observer pattern in Ruby?
+### <a id="observer-pattern-in-ruby"></a>**How would you implement the Observer pattern in Ruby?**
 **Answer:** The Observer pattern defines a one-to-many dependency between objects so that when one object changes state, all its dependents are notified.
 
 ```ruby
@@ -792,7 +1022,7 @@ stock.price = 155.0
 stock.price = 160.0
 ```
 
-### Q20: What are some common Ruby OOP best practices?
+### <a id="ruby-oop-best-practices"></a>**What are some common Ruby OOP best practices?**
 **Answer:** Here are key best practices for Ruby OOP:
 
 ```ruby
@@ -879,7 +1109,7 @@ end
 
 ## SOLID Principles
 
-### Q1: What are SOLID principles and why are they important in Ruby on Rails?
+### <a id="solid-principles-in-ruby"></a>**What are SOLID principles and why are they important in Ruby on Rails?**
 
 **Answer:** SOLID is an acronym for five object-oriented design principles that help create maintainable, flexible, and scalable software:
 
@@ -896,7 +1126,7 @@ These principles are crucial in Rails applications for:
 - **Flexibility**: Easy to swap implementations
 - **Reduced Coupling**: Classes depend on abstractions
 
-### Q2: Explain Single Responsibility Principle with Rails examples.
+### <a id="single-responsibility-principle"></a>**Explain Single Responsibility Principle with Rails examples.**
 
 **Answer:** A class should have only one reason to change - it should have only one job or responsibility.
 
@@ -954,7 +1184,7 @@ class UsersController < ApplicationController
 end
 ```
 
-### Q3: How does Open/Closed Principle work in Ruby on Rails?
+### <a id="open-closed-principle"></a>**How does Open/Closed Principle work in Ruby on Rails?**
 
 **Answer:** Software entities should be open for extension but closed for modification.
 
@@ -1004,7 +1234,7 @@ class Order
 end
 ```
 
-### Q4: Explain Liskov Substitution Principle with examples.
+### <a id="liskov-substitution-principle"></a>**Explain Liskov Substitution Principle with examples.**
 
 **Answer:** Objects of a superclass should be replaceable with objects of its subclasses without breaking the application.
 
@@ -1070,7 +1300,7 @@ class Penguin < SwimmingBird
 end
 ```
 
-### Q5: How does Interface Segregation Principle apply to Ruby modules?
+### <a id="interface-segregation-principle"></a>**How does Interface Segregation Principle apply to Ruby modules?**
 
 **Answer:** Clients should not be forced to depend on interfaces they don't use.
 
@@ -1155,7 +1385,7 @@ class Robot
 end
 ```
 
-### Q6: Explain Dependency Inversion Principle in Rails context.
+### <a id="dependency-inversion-principle"></a>**Explain Dependency Inversion Principle in Rails context.**
 
 **Answer:** High-level modules should not depend on low-level modules. Both should depend on abstractions.
 
@@ -1215,7 +1445,7 @@ end
 order_service = OrderService.new(EmailNotifier.new)
 ```
 
-### Q7: How do you implement SOLID principles in Rails applications?
+### <a id="implementing-solid-principles-in-rails"></a>**How do you implement SOLID principles in Rails applications?**
 
 **Answer:** Here are common Rails patterns that follow SOLID principles:
 
@@ -1311,7 +1541,7 @@ class UserService
 end
 ```
 
-### Q8: What are the benefits of following SOLID principles in Rails applications?
+### <a id="benefits-of-solid-principles"></a>**What are the benefits of following SOLID principles in Rails applications?**
 
 **Answer:** Benefits include:
 
@@ -1324,7 +1554,7 @@ end
 7. **Easier Debugging**: Issues are isolated to specific classes
 8. **Team Collaboration**: Multiple developers can work on different parts without conflicts
 
-### Q9: How do you refactor existing Rails code to follow SOLID principles?
+### <a id="refactoring-to-solid-principles"></a>**How do you refactor existing Rails code to follow SOLID principles?**
 
 **Answer:** Common refactoring techniques:
 
@@ -1405,7 +1635,7 @@ class PostsController < ApplicationController
 end
 ```
 
-### Q10: What are common violations of SOLID principles in Rails applications?
+### <a id="common-solid-violations"></a>**What are common violations of SOLID principles in Rails applications?**
 
 **Answer:** Common violations include:
 
@@ -1481,15 +1711,15 @@ end
 
 ## Practice Questions
 
-### Q21: Create a class hierarchy for different types of employees with appropriate methods and demonstrate polymorphism.
+### <a id="employee-class-hierarchy"></a>**Create a class hierarchy for different types of employees with appropriate methods and demonstrate polymorphism.**
 
-### Q22: Implement a simple banking system using classes for Account, Transaction, and Customer with proper encapsulation.
+### <a id="banking-system-encapsulation"></a>**Implement a simple banking system using classes for Account, Transaction, and Customer with proper encapsulation.**
 
-### Q23: Create a module for common mathematical operations and include it in different geometric shape classes.
+### <a id="mathematical-module-geometric-shapes"></a>**Create a module for common mathematical operations and include it in different geometric shape classes.**
 
-### Q24: Implement a simple event system using the Observer pattern where multiple listeners can subscribe to events.
+### <a id="event-system-observer-pattern"></a>**Implement a simple event system using the Observer pattern where multiple listeners can subscribe to events.**
 
-### Q25: Design a class structure for a library management system with books, members, and borrowing functionality.
+### <a id="library-management-system"></a>**Design a class structure for a library management system with books, members, and borrowing functionality.**
 
 ---
 

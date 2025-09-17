@@ -249,11 +249,163 @@ User.joins(orders: :order_items)
     .select('users.*, SUM(order_items.quantity * order_items.price) as total_spent')
 ```
 
+### <a id="includes-vs-joins"></a>11. **Difference between includes and joins**
+
+**Question**: What's the difference between `includes` and `joins` in ActiveRecord? When would you use each?
+
+**Answer**:
+
+**Key Differences:**
+
+| Feature | `includes` | `joins` |
+|---------|------------|---------|
+| **Purpose** | Eager loading (prevents N+1) | Filtering and aggregations |
+| **SQL Queries** | 2+ separate queries | 1 query with JOIN |
+| **Data Loading** | Loads associated data | Doesn't load associated data |
+| **Performance** | Better for N+1 prevention | Better for filtering/aggregation |
+| **Memory Usage** | Higher (loads all data) | Lower (only loads what's needed) |
+
+**1. `includes` - Eager Loading**
+```ruby
+# includes loads associated data to prevent N+1 queries
+users = User.includes(:orders).all
+
+# SQL Generated:
+# SELECT "users".* FROM "users"
+# SELECT "orders".* FROM "orders" WHERE "orders"."user_id" IN (1, 2, 3, ...)
+
+users.each do |user|
+  puts user.orders.count  # No additional query - data already loaded
+end
+
+# includes with conditions
+User.includes(:orders).where(orders: { status: 'completed' })
+# Uses LEFT OUTER JOIN to filter, but still eager loads
+```
+
+**2. `joins` - Filtering and Aggregation**
+```ruby
+# joins creates INNER JOIN for filtering/aggregation
+users = User.joins(:orders).where(orders: { status: 'completed' })
+
+# SQL Generated:
+# SELECT "users".* FROM "users" 
+# INNER JOIN "orders" ON "orders"."user_id" = "users"."id" 
+# WHERE "orders"."status" = 'completed'
+
+users.each do |user|
+  puts user.orders.count  # This will cause N+1 queries!
+end
+
+# joins with aggregations
+User.joins(:orders)
+    .group(:id)
+    .select('users.*, COUNT(orders.id) as order_count')
+```
+
+**3. Practical Examples**
+
+**Use `includes` when:**
+```ruby
+# You need to access associated data
+users = User.includes(:profile, :orders).all
+users.each do |user|
+  puts user.profile.bio        # No additional query
+  puts user.orders.count       # No additional query
+end
+
+# You want to prevent N+1 queries
+posts = Post.includes(:author, :comments).all
+posts.each do |post|
+  puts post.author.name        # No additional query
+  puts post.comments.count     # No additional query
+end
+```
+
+**Use `joins` when:**
+```ruby
+# You need to filter by associated data
+User.joins(:orders).where(orders: { created_at: 1.week.ago..Time.current })
+
+# You need aggregations
+User.joins(:orders)
+    .group(:id)
+    .having('COUNT(orders.id) > ?', 5)
+    .select('users.*, COUNT(orders.id) as order_count')
+
+# You need to find records with/without associations
+User.joins(:orders)                    # Users who have orders
+User.left_joins(:orders).where(orders: { id: nil })  # Users without orders
+```
+
+**4. Advanced Usage**
+
+**Combining both:**
+```ruby
+# Use joins for filtering, includes for eager loading
+User.joins(:orders)
+    .includes(:profile)
+    .where(orders: { status: 'completed' })
+    .where(profiles: { verified: true })
+
+# SQL: INNER JOIN for orders filter, separate query for profile data
+```
+
+**Different types of joins:**
+```ruby
+# INNER JOIN (default)
+User.joins(:orders)  # Only users with orders
+
+# LEFT OUTER JOIN
+User.left_joins(:orders)  # All users, even without orders
+
+# Multiple associations
+User.joins(:orders, :profile)  # Users with both orders and profiles
+```
+
+**5. Performance Considerations**
+
+```ruby
+# BAD - N+1 queries
+users = User.all
+users.each { |user| puts user.orders.count }  # N+1 problem
+
+# GOOD - Use includes for N+1 prevention
+users = User.includes(:orders).all
+users.each { |user| puts user.orders.count }  # No N+1
+
+# GOOD - Use joins for filtering
+User.joins(:orders).where(orders: { status: 'pending' })
+
+# BAD - Don't use joins when you need the data
+users = User.joins(:orders).all
+users.each { |user| puts user.orders.count }  # Still N+1!
+```
+
+**6. When to Use Each**
+
+**Use `includes` when:**
+- You need to access associated data
+- You want to prevent N+1 queries
+- You're displaying associated data in views
+- Memory usage is not a concern
+
+**Use `joins` when:**
+- You need to filter by associated data
+- You need aggregations (COUNT, SUM, etc.)
+- You want to find records with/without associations
+- You don't need the associated data itself
+- Performance is critical and you want single queries
+
+**Summary:**
+- `includes` = "Load the data" (eager loading)
+- `joins` = "Filter by the data" (query optimization)
+
 ---
 
 ## Performance and Optimization
 
-### <a id="n1-queries"></a>11. **N+1 query problem**
+### <a id="n1-queries"></a>12. **N+1 query problem**
 
 **Question**: Explain and solve the N+1 query problem.
 
@@ -283,7 +435,7 @@ User.joins(:orders)
     .select('users.*, COUNT(orders.id) as order_count')
 ```
 
-### <a id="query-optimization"></a>12. **Query optimization**
+### <a id="query-optimization"></a>13. **Query optimization**
 
 **Question**: Optimize a slow query that finds users with their latest order.
 
@@ -313,7 +465,7 @@ User.joins("INNER JOIN (
 ) latest_orders ON users.id = latest_orders.user_id")
 ```
 
-### <a id="bulk-operations"></a>13. **Bulk operations**
+### <a id="bulk-operations"></a>14. **Bulk operations**
 
 **Question**: Perform bulk insert/update operations efficiently.
 
@@ -349,7 +501,7 @@ end
 
 ## Advanced Active Record Features
 
-### <a id="scopes-and-chaining"></a>14. **Scopes and method chaining**
+### <a id="scopes-and-chaining"></a>15. **Scopes and method chaining**
 
 **Question**: Create scopes for common queries and chain them.
 
@@ -385,7 +537,7 @@ User.active.recent.by_role('customer').with_orders
 User.high_spenders.by_status('verified')
 ```
 
-### <a id="callbacks-and-validations"></a>15. **Callbacks and validations**
+### <a id="callbacks-and-validations"></a>16. **Callbacks and validations**
 
 **Question**: Implement callbacks and validations for a User model.
 
@@ -448,7 +600,7 @@ class User < ApplicationRecord
 end
 ```
 
-### <a id="transactions"></a>16. **Database transactions**
+### <a id="transactions"></a>17. **Database transactions**
 
 **Question**: Implement a method that transfers money between accounts using transactions.
 
@@ -495,7 +647,7 @@ recipient_account = Account.find(2)
 sender_account.transfer_to(recipient_account, 100)
 ```
 
-### <a id="polymorphic-associations"></a>17. **Polymorphic associations**
+### <a id="polymorphic-associations"></a>18. **Polymorphic associations**
 
 **Question**: Implement a comment system that can comment on different types of content.
 
@@ -535,7 +687,7 @@ user.comments.includes(:commentable)
 Comment.where(commentable_type: 'Post').includes(:commentable)
 ```
 
-### <a id="custom-sql"></a>18. **Custom SQL queries**
+### <a id="custom-sql"></a>19. **Custom SQL queries**
 
 **Question**: Write custom SQL queries when Active Record methods are insufficient.
 
@@ -602,7 +754,7 @@ end
 
 ## Practice Questions
 
-### <a id="practice-problems"></a>19. **Common Interview Practice Problems**
+### <a id="practice-problems"></a>20. **Common Interview Practice Problems**
 
 **Problem 1**: Find the department with the highest average salary
 ```ruby
@@ -646,7 +798,7 @@ Product.joins(:order_items)
        .first
 ```
 
-### <a id="callback-sequence-calling"></a>19. **Explain Rails Callback Sequence Calling**
+### <a id="callback-sequence-calling"></a>21. **Explain Rails Callback Sequence Calling**
 
 **Question**: Explain the complete sequence of Rails callbacks for create, update, and destroy operations.
 
