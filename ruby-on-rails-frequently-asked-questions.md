@@ -19,7 +19,7 @@
 12. [What is Rack in Rails?](ruby-on-rails-interview-questions.md#what-is-rack-in-rails)
 13. [What are Rails gems?](ruby-on-rails-interview-questions.md#what-are-rails-gems)
 14. [What are Rails concerns?](ruby-on-rails-interview-questions.md#what-are-rails-concerns)
-15. [Explain Rails caching strategies](ruby-on-rails-interview-questions.md#explain-rails-caching-strategies)
+15. [How does caching work in Ruby on Rails?](ruby-on-rails-interview-questions.md#how-does-caching-work-in-ruby-on-rails)
 
 #### **ActiveRecord & Database (Questions 16-25)**
 16. [What is the N+1 query problem?](ruby-on-rails-interview-questions.md#what-is-the-n1-query-problem)
@@ -50,12 +50,11 @@
 37. [How do you prevent SQL injection?](ruby-on-rails-advanced-interview-questions.md#explain-rails-security-best-practices-in-detail)
 38. [How do you prevent XSS attacks?](ruby-on-rails-advanced-interview-questions.md#explain-rails-security-best-practices-in-detail)
 39. [How do you optimize Rails performance?](ruby-on-rails-advanced-interview-questions.md#explain-rails-performance-optimization-in-detail)
-40. [What are Rails caching strategies?](ruby-on-rails-advanced-interview-questions.md#explain-rails-caching-strategies-in-detail)
-41. [How do you handle background jobs?](ruby-on-rails-advanced-interview-questions.md#explain-rails-background-job-processing)
-42. [What is Sidekiq?](ruby-on-rails-advanced-interview-questions.md#what-is-sidekiq)
-43. [How do you implement authentication?](ruby-on-rails-advanced-interview-questions.md#explain-rails-security-best-practices-in-detail)
-44. [How do you implement authorization?](ruby-on-rails-advanced-interview-questions.md#explain-rails-security-best-practices-in-detail)
-45. [What are Rails security best practices?](ruby-on-rails-advanced-interview-questions.md#explain-rails-security-best-practices-in-detail)
+40. [How do you handle background jobs?](ruby-on-rails-advanced-interview-questions.md#explain-rails-background-job-processing)
+41. [What is Sidekiq?](ruby-on-rails-advanced-interview-questions.md#what-is-sidekiq)
+42. [How do you implement authentication?](ruby-on-rails-advanced-interview-questions.md#explain-rails-security-best-practices-in-detail)
+43. [How do you implement authorization?](ruby-on-rails-advanced-interview-questions.md#explain-rails-security-best-practices-in-detail)
+44. [What are Rails security best practices?](ruby-on-rails-advanced-interview-questions.md#explain-rails-security-best-practices-in-detail)
 
 #### **Advanced Topics (Questions 46-50)**
 46. [What are Rails engines?](ruby-on-rails-advanced-interview-questions.md#what-are-rails-engines)

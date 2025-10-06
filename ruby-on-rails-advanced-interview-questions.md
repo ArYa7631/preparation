@@ -91,32 +91,93 @@ Rails engines are mini-applications that can be embedded within a Rails applicat
     ```
 
 ### <a id="what-is-sidekiq"></a>**What is Sidekiq?**
-    ```ruby
-    # Gemfile
-    gem 'sidekiq'
-    
-    # app/jobs/email_job.rb
-    class EmailJob < ApplicationJob
-      queue_as :default
-      sidekiq_options retry: 3, backtrace: true
-      
-      def perform(user_id)
-        user = User.find(user_id)
-        UserMailer.welcome_email(user).deliver_now
-      end
-    end
-    
-    # config/sidekiq.yml
-    :concurrency: 25
-    :queues:
-      - [critical, 3]
-      - [default, 2]
-      - [low, 1]
-    
-    # Usage
-    EmailJob.perform_async(user.id)
-    EmailJob.perform_in(1.hour, user.id)
-    ```
+
+Sidekiq is a background job processing library for Ruby that uses Redis as its message broker. It's designed for high-performance, multi-threaded job processing.
+
+```ruby
+# Gemfile
+gem 'sidekiq'
+
+# app/jobs/email_job.rb
+class EmailJob < ApplicationJob
+  queue_as :default
+  sidekiq_options retry: 3, backtrace: true
+  
+  def perform(user_id)
+    user = User.find(user_id)
+    UserMailer.welcome_email(user).deliver_now
+  end
+end
+
+# config/sidekiq.yml
+:concurrency: 25
+:queues:
+  - [critical, 3]
+  - [default, 2]
+  - [low, 1]
+
+# Usage
+EmailJob.perform_async(user.id)
+EmailJob.perform_in(1.hour, user.id)
+```
+
+**How Sidekiq Works:**
+
+1. **Job Enqueueing Process:**
+   ```ruby
+   # When you call perform_async, Sidekiq:
+   EmailJob.perform_async(user.id)
+   
+   # 1. Serializes the job data (class name, arguments, options)
+   # 2. Stores it in Redis under a queue key (e.g., "queue:default")
+   # 3. Returns a job ID for tracking
+   ```
+
+2. **Worker Processing:**
+   ```ruby
+   # Sidekiq workers continuously poll Redis:
+   # 1. Fetch jobs from queues based on priority weights
+   # 2. Deserialize job data
+   # 3. Execute the perform method in a separate thread
+   # 4. Handle success/failure and retry logic
+   ```
+
+3. **Redis Data Structure:**
+   ```ruby
+   # Jobs are stored in Redis as JSON:
+   {
+     "class": "EmailJob",
+     "args": [123],
+     "retry": 3,
+     "queue": "default",
+     "jid": "unique-job-id",
+     "created_at": 1234567890
+   }
+   ```
+
+4. **Queue Processing Priority:**
+   ```ruby
+   # config/sidekiq.yml queue weights:
+   :queues:
+     - [critical, 3]  # 3x more likely to be processed
+     - [default, 2]   # 2x more likely to be processed  
+     - [low, 1]       # Base priority
+   ```
+
+5. **Error Handling & Retries:**
+   ```ruby
+   class EmailJob < ApplicationJob
+     sidekiq_options retry: 3, backtrace: true
+     
+     def perform(user_id)
+       # If this fails, Sidekiq will:
+       # 1. Catch the exception
+       # 2. Log the error with backtrace
+       # 3. Retry up to 3 times with exponential backoff
+       # 4. Move to Dead queue if all retries fail
+     end
+   end
+   ```
 
 **Key Features:**
 - **Redis-based**: Uses Redis for job storage and coordination
@@ -126,26 +187,123 @@ Rails engines are mini-applications that can be embedded within a Rails applicat
 - **Reliability**: Automatic retry mechanism with exponential backoff
 - **Scalability**: Can run multiple workers across different servers
 
+**Architecture Components:**
+- **Client**: Enqueues jobs to Redis
+- **Server**: Processes jobs from Redis queues
+- **Web UI**: Monitors job status and performance
+- **Redis**: Message broker and job storage
+
 ### <a id="what-is-delayed-job"></a>**What is Delayed Job?**
-    ```ruby
-    # Gemfile
-    gem 'delayed_job_active_record'
-    
-    # app/jobs/email_job.rb
-    class EmailJob < ApplicationJob
-      queue_as :default
-      
-      def perform(user_id)
-        user = User.find(user_id)
-        UserMailer.welcome_email(user).deliver_now
-      end
-    end
-    
-    # Usage
-    EmailJob.delay.perform(user.id)
-    EmailJob.delay(run_at: 1.hour.from_now).perform(user.id)
-    EmailJob.delay(queue: 'high_priority').perform(user.id)
-    ```
+
+Delayed Job is a database-backed background job processing library for Ruby on Rails. It stores jobs in your application's database and processes them using worker processes.
+
+```ruby
+# Gemfile
+gem 'delayed_job_active_record'
+
+# app/jobs/email_job.rb
+class EmailJob < ApplicationJob
+  queue_as :default
+  
+  def perform(user_id)
+    user = User.find(user_id)
+    UserMailer.welcome_email(user).deliver_now
+  end
+end
+
+# Usage
+EmailJob.delay.perform(user.id)
+EmailJob.delay(run_at: 1.hour.from_now).perform(user.id)
+EmailJob.delay(queue: 'high_priority').perform(user.id)
+```
+
+**How Delayed Job Works:**
+
+1. **Job Enqueueing Process:**
+   ```ruby
+   # When you call delay, Delayed Job:
+   EmailJob.delay.perform(user.id)
+   
+   # 1. Creates a Delayed::Job record in the database
+   # 2. Serializes the job data (handler, arguments, options)
+   # 3. Sets priority, queue, and run_at timestamps
+   # 4. Returns the job record for tracking
+   ```
+
+2. **Database Schema:**
+   ```ruby
+   # delayed_jobs table structure:
+   create_table :delayed_jobs do |t|
+     t.integer  :priority,   default: 0
+     t.integer  :attempts,   default: 0
+     t.text     :handler
+     t.text     :last_error
+     t.datetime :run_at
+     t.datetime :locked_at
+     t.datetime :failed_at
+     t.string   :locked_by
+     t.string   :queue
+     t.timestamps
+   end
+   ```
+
+3. **Worker Processing:**
+   ```ruby
+   # Delayed Job workers poll the database:
+   # 1. Find jobs where run_at <= now and locked_at IS NULL
+   # 2. Lock the job by setting locked_at and locked_by
+   # 3. Deserialize and execute the job
+   # 4. Delete job on success or update on failure
+   # 5. Release lock and continue polling
+   ```
+
+4. **Job Serialization:**
+   ```ruby
+   # Jobs are stored as YAML in the handler column:
+   --- !ruby/object:Delayed::PerformableMethod
+   object: !ruby/class 'EmailJob'
+   method_name: :perform
+   args:
+     - 123
+   ```
+
+5. **Priority and Queue Processing:**
+   ```ruby
+   # Workers process jobs in order:
+   # 1. Higher priority first (priority: 0 = highest)
+   # 2. Earlier run_at times first
+   # 3. Queue-specific processing
+   
+   EmailJob.delay(priority: 10, queue: 'high_priority').perform(user.id)
+   EmailJob.delay(priority: 0, queue: 'low_priority').perform(user.id)
+   ```
+
+6. **Error Handling & Retries:**
+   ```ruby
+   class EmailJob < ApplicationJob
+     def perform(user_id)
+       # If this fails, Delayed Job will:
+       # 1. Catch the exception
+       # 2. Increment attempts counter
+       # 3. Store error message in last_error
+       # 4. Set failed_at if max attempts reached
+       # 5. Retry with exponential backoff
+     end
+   end
+   ```
+
+7. **Worker Management:**
+   ```ruby
+   # Start workers:
+   bundle exec rake jobs:work
+   
+   # Or with specific queues:
+   QUEUE=high_priority bundle exec rake jobs:work
+   
+   # Multiple workers:
+   bundle exec rake jobs:work RAILS_ENV=production &
+   bundle exec rake jobs:work RAILS_ENV=production &
+   ```
 
 **Key Features:**
 - **Database-backed**: Stores jobs in the database (no external dependencies)
@@ -154,6 +312,12 @@ Rails engines are mini-applications that can be embedded within a Rails applicat
 - **Scheduled jobs**: Built-in support for delayed execution
 - **Database transactions**: Jobs are part of database transactions
 - **ActiveRecord integration**: Seamless integration with Rails models
+
+**Architecture Components:**
+- **Database**: Stores job records and metadata
+- **Worker Processes**: Poll database and execute jobs
+- **Job Records**: ActiveRecord models representing queued jobs
+- **Serialization**: YAML-based job data storage
 
 **Sidekiq vs Delayed Job Comparison:**
 - **Performance**: Sidekiq is generally faster due to Redis and multi-threading
