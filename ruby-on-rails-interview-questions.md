@@ -2062,7 +2062,9 @@ For additional Rails interview questions, please refer to the following speciali
 
 - **[Most Frequently Asked Questions](ruby-on-rails-frequently-asked-questions.md)** - Top 50 most commonly asked Rails interview questions (master index)
 - **[Advanced Rails Questions](ruby-on-rails-advanced-interview-questions.md)** - Senior-level Rails concepts and architecture patterns
-- **[Core Ruby & Rails Concepts](ruby-on-rails-core-concepts-interview-questions.md)** - Ruby fundamentals and advanced concepts
+- **[Core Ruby & Rails Concepts - Part 1](core-concepts-part-1.md)** - Routing, basics, associations
+- **[Core Ruby & Rails Concepts - Part 2](core-concepts-part-2.md)** - Architecture, OOP, modules
+- **[Core Ruby & Rails Concepts - Part 3](core-concepts-part-3.md)** - Advanced patterns, data types
 - **[ActiveRecord Questions](ruby-on-rails-activerecord-interview-questions.md)** - Database query problems and specific ActiveRecord challenges
 - **[Additional Concepts](ruby-on-rails-additional-concepts-interview-questions.md)** - Extra Rails concepts and patterns
 - **[Situation-Based Questions](ruby-on-rails-situation-based-interview-questions.md)** - Real-world scenario questions

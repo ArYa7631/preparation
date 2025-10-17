@@ -24,26 +24,26 @@
 #### **ActiveRecord & Database (Questions 16-25)**
 16. [What is the N+1 query problem?](ruby-on-rails-interview-questions.md#what-is-the-n1-query-problem)
 17. [How do you solve N+1 queries?](ruby-on-rails-interview-questions.md#how-do-you-solve-n1-queries)
-18. [Explain eager loading vs lazy loading](ruby-on-rails-core-concepts-interview-questions.md#eager-loading-vs-lazy-loading)
+18. [Explain eager loading vs lazy loading](core-concepts-part-1.md#eager-loading-vs-lazy-loading)
 19. [What are database transactions?](ruby-on-rails-interview-questions.md#what-are-database-transactions)
-20. [Explain polymorphic associations](ruby-on-rails-core-concepts-interview-questions.md#polymorphic-association)
-21. [What is Single Table Inheritance (STI)?](ruby-on-rails-core-concepts-interview-questions.md#single-table-inheritance)
+20. [Explain polymorphic associations](core-concepts-part-1.md#polymorphic-association)
+21. [What is Single Table Inheritance (STI)?](core-concepts-part-2.md#single-table-inheritance)
 22. [Explain self joins](ruby-on-rails-activerecord-interview-questions.md#self-joins)
 23. [What are Rails scopes vs class methods?](ruby-on-rails-advanced-interview-questions.md#what-are-rails-scopes-vs-class-methods)
 24. [How do you find duplicate records?](ruby-on-rails-activerecord-interview-questions.md#find-duplicate-records)
 25. [How do you find the nth highest salary?](ruby-on-rails-activerecord-interview-questions.md#find-nth-highest-salary)
 
 #### **Ruby Fundamentals (Questions 26-35)**
-26. [What is self in Ruby?](ruby-on-rails-core-concepts-interview-questions.md#self-in-ruby)
-27. [Explain include vs extend](ruby-on-rails-core-concepts-interview-questions.md#include-vs-extends)
-28. [What is mixing in Ruby?](ruby-on-rails-core-concepts-interview-questions.md#mixing-in-ruby)
-29. [Explain blocks, procs, and lambdas](ruby-on-rails-core-concepts-interview-questions.md#block-proc-lambda)
-30. [What is the difference between strings and symbols?](ruby-on-rails-core-concepts-interview-questions.md#string-vs-symbol)
-31. [Explain OOP concepts in Ruby](ruby-on-rails-core-concepts-interview-questions.md#oops-concepts)
-32. [What is the difference between require and load?](ruby-on-rails-core-concepts-interview-questions.md#require-vs-load)
-33. [Explain access control (private, protected, public)](ruby-on-rails-core-concepts-interview-questions.md#access-control)
-34. [What is the difference between select, collect, and map?](ruby-on-rails-core-concepts-interview-questions.md#select-collect-map-difference)
-35. [Explain module vs class](ruby-on-rails-core-concepts-interview-questions.md#module-vs-class)
+26. [What is self in Ruby?](core-concepts-part-2.md#self-in-ruby)
+27. [Explain include vs extend](core-concepts-part-1.md#include-vs-extends)
+28. [What is mixing in Ruby?](core-concepts-part-2.md#mixing-in-ruby)
+29. [Explain blocks, procs, and lambdas](core-concepts-part-3.md#block-proc-lambda)
+30. [What is the difference between strings and symbols?](core-concepts-part-3.md#string-vs-symbol)
+31. [Explain OOP concepts in Ruby](core-concepts-part-2.md#oops-concepts)
+32. [What is the difference between require and load?](core-concepts-part-1.md#require-vs-load)
+33. [Explain access control (private, protected, public)](core-concepts-part-3.md#access-control)
+34. [What is the difference between select, collect, and map?](core-concepts-part-3.md#select-collect-map-difference)
+35. [Explain module vs class](core-concepts-part-3.md#module-vs-class)
 
 #### **Security & Performance (Questions 36-45)**
 36. [What are common Rails security concerns?](ruby-on-rails-advanced-interview-questions.md#explain-rails-security-best-practices-in-detail)
@@ -93,7 +93,9 @@
 
 - **[Main Rails Interview Questions](ruby-on-rails-interview-questions.md)** - Comprehensive Rails questions with detailed answers (Questions 1-15, 16-17, 19)
 - **[Advanced Rails Questions](ruby-on-rails-advanced-interview-questions.md)** - Senior-level Rails concepts and architecture patterns
-- **[Core Ruby & Rails Concepts](ruby-on-rails-core-concepts-interview-questions.md)** - Ruby fundamentals and advanced concepts (Questions 18, 20-22, 26-35)
+- **[Core Ruby & Rails Concepts - Part 1](core-concepts-part-1.md)** - Routing, basics, associations (Questions 18, 20, 27, 32)
+- **[Core Ruby & Rails Concepts - Part 2](core-concepts-part-2.md)** - Architecture, OOP, modules (Questions 21, 26, 28, 31)
+- **[Core Ruby & Rails Concepts - Part 3](core-concepts-part-3.md)** - Advanced patterns, data types (Questions 29, 30, 33-35)
 - **[ActiveRecord Questions](ruby-on-rails-activerecord-interview-questions.md)** - Database query problems and specific ActiveRecord challenges (Questions 22, 24-25)
 - **[Additional Concepts](ruby-on-rails-additional-concepts-interview-questions.md)** - Extra Rails concepts and patterns
 - **[Situation-Based Questions](ruby-on-rails-situation-based-interview-questions.md)** - Real-world scenario questions
