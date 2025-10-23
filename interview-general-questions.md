@@ -63,4 +63,75 @@ It was a big refactor, but in the end it really cleaned up the code and made the
 
 When the admin of that account assigns the license, it gets stored in our backend system. So whenever a user logs in, we check their account details and see which license they have. Based on that license, we decide which features should be available to them.
 
-So instead of manually enabling features through a feature flag, it’s all automated through the license system—much cleaner and easier to manage at scale.”**
+So instead of manually enabling features through a feature flag, it's all automated through the license system—much cleaner and easier to manage at scale."**
+
+## Previous Work Experience
+
+### Panther
+**Role:** Full Stack Developer
+
+**Description:**
+Panther is a white-label marketplace platform that enables businesses to launch expert-based consulting or service platforms quickly. It includes features like user onboarding, scheduling, chat/call support, and secure payments. The platform allows full branding customization and helps companies build scalable service marketplaces without heavy development effort.
+
+**Responsibilities:**
+- Built a scalable SaaS platform enabling real-time virtual consultations for 50K+ active users
+- Integrated Stripe for secure global payments with failover and webhook-based reconciliation
+- Implemented AWS S3 for image hosting and optimized SEO for higher organic traffic
+- Enhanced automation test coverage using AI-generated Jest test cases
+- Focused on AI-based security improvements for transactional workflows
+
+**Technologies Used:** Ruby on Rails, RSpec, React.js, TypeScript, Jest, ChatGPT, GitHub Copilot, AWS S3, Stripe
+
+### Tiger
+**Role:** Full Stack Developer
+
+**Description:**
+Tiger is a customizable community and networking platform by JungleWorks that enables businesses to build niche community portals, membership networks, and knowledge-sharing ecosystems. It supports role-based access, content sharing, discussions, and monetization through subscriptions or premium features. The platform helps organizations create private branded communities without building from scratch.
+
+**Responsibilities:**
+- Integrated Fugu chatbot for automated customer engagement and real-time user support
+- Implemented course listing and purchasing modules, including payment flow integration and user access management
+
+**Technologies Used:** Ruby on Rails, React.js, AWS S3, Stripe
+
+### Startup Network
+**Role:** Back-End Developer
+
+**Description:**
+Startup Network is a platform designed to connect entrepreneurs, investors, mentors, and service providers within a unified ecosystem. It helps early-stage startups gain visibility, access to funding opportunities, and mentorship while enabling investors to discover high-potential ventures. The platform facilitates networking, pitch evaluations, and community-driven growth for emerging founders.
+
+**Responsibilities:**
+- Developed a real-time investment matchmaking system connecting VCs and startup founders
+- Implemented AWS S3-based storage for media assets and optimized SEO for public listings
+- Built server-side logic in Ruby on Rails with search indexing powered by Search Sphinx
+- Contributed to backend performance improvements and API response optimization
+
+**Technologies Used:** Ruby on Rails, RSpec, Search Sphinx, AWS S3
+
+### Yelo Web App
+**Role:** (Intern + Back-End Developer)
+
+**Description:** 
+Yelo is a no-code marketplace platform by JungleWorks that allows businesses to launch hyperlocal marketplaces such as food delivery, grocery, home services, or rental platforms. It provides storefront creation, vendor onboarding, catalog management, order tracking, and payment integrations out of the box. The platform enables quick go-to-market with full branding customization and scalability.
+
+**Responsibilities:**
+- Developed a multi-industry online ordering and delivery platform
+- Integrated Stripe payment gateways for subscription and transaction-based billing
+- Implemented backend business logic and REST APIs for core commerce features
+
+**Technologies Used:** Ruby on Rails, Stripe
+
+### AryaSoftwareTech 2.0 (Personal Project)
+**Role:** Full Stack Developer
+
+**Description:**
+AryaSoftwareTech 2.0 is a multi-tenant SaaS website builder that lets users launch branded websites with custom domains and automated SSL. It features a visual page builder, JWT-based authentication, role-based access, dynamic domain routing, and cloud storage via AWS S3 for scalable deployments.
+
+**Responsibilities:**
+- Multi-tenant SaaS platform with custom domain support and automated SSL
+- Architected multi-tenant PostgreSQL system with dynamic domain routing
+- Built visual page builder with 8+ sections and real-time updates
+- Implemented JWT auth, RBAC, and AWS S3 file storage
+- Deployed with Docker, Nginx, and automated SSL (Let's Encrypt)
+
+**Technologies Used:** Ruby on Rails, React.js, PostgreSQL, AWS S3, Docker, Nginx, JWT
