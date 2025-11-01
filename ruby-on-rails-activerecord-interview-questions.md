@@ -465,7 +465,344 @@ User.joins("INNER JOIN (
 ) latest_orders ON users.id = latest_orders.user_id")
 ```
 
-### <a id="bulk-operations"></a>14. **Bulk operations**
+### <a id="database-indexing"></a>14. **How does database indexing work?**
+
+**Question**: Explain how database indexing works and how to implement it in Rails.
+
+**Answer**:
+
+**What is an Index?**
+
+An **index** is a database structure that improves the speed of data retrieval operations on a database table. Think of it like an index in a book - instead of reading every page to find a topic, you look up the index to find the exact page number.
+
+**How Indexing Works:**
+
+1. **Without Index (Full Table Scan):**
+   ```sql
+   -- Query: Find user with email = 'john@example.com'
+   SELECT * FROM users WHERE email = 'john@example.com';
+   
+   -- Database must check EVERY row (O(n) complexity)
+   -- If table has 1 million rows, checks all 1 million
+   -- Time: ~500ms - 2000ms for large tables
+   ```
+
+2. **With Index (Index Scan):**
+   ```sql
+   -- Same query with index on email column
+   SELECT * FROM users WHERE email = 'john@example.com';
+   
+   -- Database uses index (B-tree structure)
+   -- Finds matching row directly (O(log n) complexity)
+   -- If table has 1 million rows, checks ~20 rows
+   -- Time: ~1ms - 10ms
+   ```
+
+**Index Data Structure (B-Tree):**
+
+```
+           [M]
+          /   \
+       [G-P]  [T-Z]
+       / | \   / | \
+    [A-F][H-L][Q-S][U-Z]
+```
+
+- **Root Node**: Starting point
+- **Branch Nodes**: Intermediate levels
+- **Leaf Nodes**: Actual data pointers
+- **Search Time**: Logarithmic (O(log n)) instead of linear (O(n))
+
+**Creating Indexes in Rails:**
+
+```ruby
+# Migration to add index
+class AddIndexToUsersEmail < ActiveRecord::Migration[7.0]
+  def change
+    # Single column index
+    add_index :users, :email
+    
+    # Unique index (prevents duplicates)
+    add_index :users, :email, unique: true
+    
+    # Index with custom name
+    add_index :users, :email, name: 'index_users_on_email'
+  end
+end
+
+# Composite index (multiple columns)
+class AddCompositeIndexToOrders < ActiveRecord::Migration[7.0]
+  def change
+    # Index on multiple columns (order matters!)
+    add_index :orders, [:user_id, :status, :created_at]
+    
+    # Why order matters:
+    # ✅ Fast: WHERE user_id = 1 AND status = 'active'
+    # ✅ Fast: WHERE user_id = 1
+    # ❌ Slow: WHERE status = 'active' (first column not used)
+  end
+end
+
+# Partial index (index only specific rows)
+class AddPartialIndexToActiveUsers < ActiveRecord::Migration[7.0]
+  def change
+    # Only index active users (smaller index, faster)
+    add_index :users, :email, 
+              where: "deleted_at IS NULL",
+              name: 'index_users_email_active'
+  end
+end
+
+# Removing index
+class RemoveIndexFromUsers < ActiveRecord::Migration[7.0]
+  def change
+    remove_index :users, :email
+    # Or by name
+    remove_index :users, name: 'index_users_on_email'
+  end
+end
+```
+
+**Types of Indexes:**
+
+**1. Primary Key Index (Automatic):**
+```ruby
+# Automatically created for primary key
+create_table :users do |t|
+  t.string :email
+end
+# 'id' column automatically has index
+```
+
+**2. Unique Index:**
+```ruby
+# Ensures uniqueness + fast lookups
+add_index :users, :email, unique: true
+
+# Or in table definition
+create_table :users do |t|
+  t.string :email, index: { unique: true }
+end
+```
+
+**3. Composite Index:**
+```ruby
+# Multiple columns in one index
+add_index :orders, [:user_id, :status, :created_at]
+
+# Column order matters (left-to-right)
+# Fast queries using:
+#   - user_id only
+#   - user_id + status
+#   - user_id + status + created_at
+# Slow queries using:
+#   - status only (skips first column)
+#   - created_at only (skips first two columns)
+```
+
+**4. Partial Index:**
+```ruby
+# Index only specific rows (PostgreSQL)
+add_index :users, :email, where: "active = true"
+add_index :orders, :created_at, where: "status = 'pending'"
+
+# Benefits:
+# - Smaller index size
+# - Faster queries on filtered data
+# - Lower maintenance overhead
+```
+
+**5. Expression Index:**
+```ruby
+# Index on computed values (PostgreSQL)
+add_index :users, 'LOWER(email)', name: 'index_users_on_lower_email'
+
+# Useful for case-insensitive searches
+User.where("LOWER(email) = ?", "john@example.com")
+```
+
+**When to Add Indexes:**
+
+**✅ Do Index:**
+- Foreign keys (belongs_to associations)
+- Columns frequently used in WHERE clauses
+- Columns used in ORDER BY
+- Columns used in JOIN conditions
+- Unique identifiers (email, username)
+- Columns used for filtering/searching
+
+**❌ Don't Over-Index:**
+- Rarely queried columns
+- Columns with very few unique values (low cardinality)
+- Frequently updated columns (indexes slow down INSERTs/UPDATEs)
+- Very small tables (< 1000 rows)
+
+**Common Index Patterns in Rails:**
+
+```ruby
+# 1. Foreign keys (belongs_to)
+class CreateOrders < ActiveRecord::Migration[7.0]
+  def change
+    create_table :orders do |t|
+      t.references :user, foreign_key: true  # Automatically indexed
+      t.string :status
+      t.timestamps
+    end
+  end
+end
+
+# 2. Frequently filtered columns
+class AddIndexesToUsers < ActiveRecord::Migration[7.0]
+  def change
+    add_index :users, :status
+    add_index :users, :active
+    add_index :users, :created_at
+  end
+end
+
+# 3. Composite indexes for common queries
+class AddCompositeIndexes < ActiveRecord::Migration[7.0]
+  def change
+    # Common query: active users created this month
+    add_index :users, [:active, :created_at]
+    
+    # Common query: user's orders by status
+    add_index :orders, [:user_id, :status, :created_at]
+  end
+end
+
+# 4. Unique constraints
+class AddUniqueIndexes < ActiveRecord::Migration[7.0]
+  def change
+    add_index :users, :email, unique: true
+    add_index :users, :username, unique: true
+  end
+end
+```
+
+**Checking if Index is Used:**
+
+```ruby
+# Use EXPLAIN to see query plan
+User.where(email: 'john@example.com').explain
+
+# Output shows:
+# Index Scan using index_users_on_email (good!)
+# vs
+# Seq Scan on users (bad - not using index!)
+
+# PostgreSQL example output:
+# -> Index Scan using index_users_on_email on users
+#    Index Cond: (email = 'john@example.com')
+
+# Performance comparison:
+# Seq Scan: O(n) - checks every row
+# Index Scan: O(log n) - tree traversal
+```
+
+**Index Trade-offs:**
+
+**Benefits:**
+- ✅ Faster SELECT queries (10x - 1000x speedup)
+- ✅ Faster JOIN operations
+- ✅ Faster ORDER BY and GROUP BY
+- ✅ Enforces uniqueness (unique indexes)
+
+**Costs:**
+- ❌ Slower INSERTs (must update index)
+- ❌ Slower UPDATEs (if indexed column changed)
+- ❌ Extra storage space (5-20% of table size)
+- ❌ Maintenance overhead (index must be kept in sync)
+
+**Best Practices:**
+
+```ruby
+# 1. Index foreign keys
+class CreatePosts < ActiveRecord::Migration[7.0]
+  def change
+    create_table :posts do |t|
+      t.references :user, foreign_key: true  # Auto-indexed
+      t.string :title
+    end
+  end
+end
+
+# 2. Index commonly filtered columns
+add_index :users, :status
+add_index :orders, :status
+
+# 3. Composite indexes for multi-column queries
+# Put most selective column first
+add_index :orders, [:status, :created_at]  # status first if more selective
+
+# 4. Use partial indexes for filtered queries
+add_index :users, :email, where: "deleted_at IS NULL"
+
+# 5. Monitor slow queries and add indexes
+# Use EXPLAIN ANALYZE to identify missing indexes
+```
+
+**Real-World Example:**
+
+```ruby
+# Without indexes - SLOW
+class User < ApplicationRecord
+  # Query: Find active users
+  # Must scan all 1 million rows
+  def self.active
+    where(active: true)  # Seq Scan - slow!
+  end
+end
+
+# With index - FAST
+class AddActiveIndexToUsers < ActiveRecord::Migration[7.0]
+  def change
+    add_index :users, :active
+  end
+end
+
+# After migration:
+# Query uses Index Scan - fast!
+User.where(active: true)  # Uses index - fast!
+```
+
+**Index Maintenance:**
+
+```ruby
+# Rebuild indexes (if corrupted or fragmented)
+# PostgreSQL
+ActiveRecord::Base.connection.execute("REINDEX TABLE users;")
+
+# Analyze table (update statistics for query planner)
+ActiveRecord::Base.connection.execute("ANALYZE users;")
+
+# Check index usage
+ActiveRecord::Base.connection.execute("
+  SELECT 
+    schemaname,
+    tablename,
+    indexname,
+    idx_scan as index_scans
+  FROM pg_stat_user_indexes
+  WHERE idx_scan = 0
+  ORDER BY schemaname, tablename;
+")
+```
+
+**Interview Key Points:**
+
+- Indexes use B-tree data structure (O(log n) lookup)
+- Indexes speed up SELECT queries but slow down INSERTs/UPDATEs
+- Always index foreign keys
+- Index columns used in WHERE, JOIN, ORDER BY clauses
+- Composite index column order matters (left-to-right)
+- Use EXPLAIN to verify index usage
+- Balance between query speed and write performance
+- Partial indexes can reduce index size and maintenance
+- Over-indexing can hurt write performance
+- Monitor unused indexes and remove them
+
+### <a id="bulk-operations"></a>15. **Bulk operations**
 
 **Question**: Perform bulk insert/update operations efficiently.
 
@@ -501,7 +838,7 @@ end
 
 ## Advanced Active Record Features
 
-### <a id="scopes-and-chaining"></a>15. **Scopes and method chaining**
+### <a id="scopes-and-chaining"></a>16. **Scopes and method chaining**
 
 **Question**: Create scopes for common queries and chain them.
 
@@ -537,7 +874,7 @@ User.active.recent.by_role('customer').with_orders
 User.high_spenders.by_status('verified')
 ```
 
-### <a id="callbacks-and-validations"></a>16. **Callbacks and validations**
+### <a id="callbacks-and-validations"></a>17. **Callbacks and validations**
 
 **Question**: Implement callbacks and validations for a User model.
 
@@ -600,7 +937,7 @@ class User < ApplicationRecord
 end
 ```
 
-### <a id="transactions"></a>17. **Database transactions**
+### <a id="transactions"></a>18. **Database transactions**
 
 **Question**: Implement a method that transfers money between accounts using transactions.
 
@@ -647,7 +984,177 @@ recipient_account = Account.find(2)
 sender_account.transfer_to(recipient_account, 100)
 ```
 
-### <a id="polymorphic-associations"></a>18. **Polymorphic associations**
+### <a id="atomicity-in-databases"></a>19. **What is atomicity in databases?**
+
+**Question**: Explain what atomicity means in database transactions and provide examples.
+
+**Answer**:
+
+**Atomicity** is the "A" in ACID properties and ensures that a database transaction is treated as a **single, indivisible unit of work**. Either all operations in a transaction succeed, or **all operations fail and are rolled back**. There is no partial completion.
+
+**Key Concepts:**
+
+1. **All or Nothing**: If any part of a transaction fails, the entire transaction is aborted and all changes are rolled back.
+
+2. **No Partial Updates**: The database never remains in an inconsistent state - you won't have some changes applied while others are not.
+
+3. **Failure Handling**: If a system crash or error occurs during a transaction, all changes are undone automatically.
+
+**Example: Money Transfer**
+
+```ruby
+# BAD - Not atomic (if second update fails, money is lost!)
+def transfer_money(from_account, to_account, amount)
+  from_account.update(balance: from_account.balance - amount)
+  to_account.update(balance: to_account.balance + amount)  # What if this fails?
+end
+
+# GOOD - Atomic transaction
+def transfer_money(from_account, to_account, amount)
+  ActiveRecord::Base.transaction do
+    from_account.update!(balance: from_account.balance - amount)
+    to_account.update!(balance: to_account.balance + amount)
+    # If either fails, both are rolled back automatically
+  end
+end
+```
+
+**Real-World Example:**
+
+```ruby
+class Order < ApplicationRecord
+  has_many :order_items
+  belongs_to :user
+  
+  def process_payment!
+    ActiveRecord::Base.transaction do
+      # Step 1: Validate inventory
+      order_items.each do |item|
+        raise "Insufficient inventory" if item.product.stock < item.quantity
+      end
+      
+      # Step 2: Charge payment
+      payment_result = PaymentService.charge(user, total_amount)
+      raise "Payment failed" unless payment_result.success?
+      
+      # Step 3: Update inventory
+      order_items.each do |item|
+        item.product.update!(stock: item.product.stock - item.quantity)
+      end
+      
+      # Step 4: Update order status
+      update!(status: 'paid', payment_id: payment_result.id)
+      
+      # Step 5: Send confirmation email
+      OrderMailer.confirmation(self).deliver_later
+    end
+  end
+end
+```
+
+**What happens if payment fails?**
+- ✅ Inventory NOT decremented
+- ✅ Order status NOT changed
+- ✅ Payment NOT processed
+- ✅ Email NOT sent
+- ✅ Database remains consistent
+
+**Database-Level Atomicity:**
+
+```sql
+-- PostgreSQL example
+BEGIN;
+  UPDATE accounts SET balance = balance - 100 WHERE id = 1;
+  UPDATE accounts SET balance = balance + 100 WHERE id = 2;
+  -- If either UPDATE fails:
+ROLLBACK;  -- All changes undone automatically
+-- OR
+COMMIT;  -- All changes applied together
+```
+
+**Key Points:**
+
+1. **Transaction Boundaries**: Everything between `BEGIN` and `COMMIT` is atomic
+2. **Automatic Rollback**: Database automatically rolls back on errors
+3. **State Consistency**: Database is never left in partial state
+4. **Concurrency Safety**: Other transactions see either all changes or none
+
+**Common Scenarios Requiring Atomicity:**
+
+- **Financial transactions**: Money transfers, payments
+- **Inventory management**: Stock updates
+- **Multi-table updates**: Creating related records
+- **Complex business logic**: Multi-step processes
+- **Data consistency**: Ensuring referential integrity
+
+**Without Atomicity (Dangerous):**
+
+```ruby
+# If the second operation fails, we've lost money!
+def transfer(from, to, amount)
+  from.balance -= amount
+  from.save  # ✅ Succeeds
+  
+  # System crash happens here...
+  to.balance += amount
+  to.save  # ❌ Fails or never executes
+  # Result: Money disappeared!
+end
+```
+
+**With Atomicity (Safe):**
+
+```ruby
+def transfer(from, to, amount)
+  ActiveRecord::Base.transaction do
+    from.balance -= amount
+    from.save!
+    
+    # Even if system crashes here
+    to.balance += amount
+    to.save!
+  end
+  # Transaction either completes fully or rolls back completely
+end
+```
+
+**ActiveRecord Transaction Methods:**
+
+```ruby
+# Method 1: Block syntax (automatic rollback on error)
+ActiveRecord::Base.transaction do
+  user.update!(status: 'active')
+  user.create_profile!(bio: 'Developer')
+end
+
+# Method 2: Explicit rollback
+ActiveRecord::Base.transaction do
+  user.update!(status: 'active')
+  raise ActiveRecord::Rollback if some_condition
+  user.create_profile!(bio: 'Developer')
+end
+
+# Method 3: Model-level transaction
+class User < ApplicationRecord
+  def activate_with_profile(profile_attrs)
+    transaction do
+      update!(active: true)
+      create_profile!(profile_attrs)
+    end
+  end
+end
+```
+
+**Interview Key Points:**
+
+- Atomicity = All operations succeed or all fail (no partial state)
+- Prevents database inconsistency
+- Essential for financial operations and multi-step processes
+- ActiveRecord transactions ensure atomicity
+- Automatic rollback on exceptions
+- Database guarantees atomicity even on system crashes
+
+### <a id="polymorphic-associations"></a>20. **Polymorphic associations**
 
 **Question**: Implement a comment system that can comment on different types of content.
 
@@ -687,7 +1194,7 @@ user.comments.includes(:commentable)
 Comment.where(commentable_type: 'Post').includes(:commentable)
 ```
 
-### <a id="custom-sql"></a>19. **Custom SQL queries**
+### <a id="custom-sql"></a>21. **Custom SQL queries**
 
 **Question**: Write custom SQL queries when Active Record methods are insufficient.
 
@@ -754,7 +1261,7 @@ end
 
 ## Practice Questions
 
-### <a id="practice-problems"></a>20. **Common Interview Practice Problems**
+### <a id="practice-problems"></a>22. **Common Interview Practice Problems**
 
 **Problem 1**: Find the department with the highest average salary
 ```ruby
@@ -798,7 +1305,7 @@ Product.joins(:order_items)
        .first
 ```
 
-### <a id="callback-sequence-calling"></a>21. **Explain Rails Callback Sequence Calling**
+### <a id="callback-sequence-calling"></a>23. **Explain Rails Callback Sequence Calling**
 
 **Question**: Explain the complete sequence of Rails callbacks for create, update, and destroy operations.
 

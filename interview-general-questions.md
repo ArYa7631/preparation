@@ -47,15 +47,31 @@ It was quite a lengthy task because I had to ensure the flow didn’t break anyw
 
 
 ### Most typical work on the highspot project for Backend
-**“On the backend side with Ruby on Rails, one of the most challenging tasks I worked on in the Ecosystem project was around feature flags and licensing.
+**"On the backend side with Ruby on Rails, one of the most challenging tasks I worked on in the Ecosystem project was around feature flags and licensing.
 
 Earlier, many of our functionalities were controlled through feature flags. So, if an admin turned a flag on in the Ecosystem panel, the users would get access to that specific feature. But as per a new requirement, we had to move away from feature flags and instead tie those functionalities to licenses.
 
-That meant, instead of checking whether a feature flag was enabled, now we had to check whether the user’s account had the correct license. If they had that license, only then they would get access to those features.
+That meant, instead of checking whether a feature flag was enabled, now we had to check whether the user's account had the correct license. If they had that license, only then they would get access to those features.
 
-This change wasn’t small because the feature flags were already being used in multiple places across the codebase. So I had to go through many files, remove the old flag checks, and replace them with license checks. Along the way, I had to make sure that nothing else broke and that the features still worked smoothly.
+One specific example that comes to mind was when I had to remove the `multi_sfdc_support` feature flag and replace it with a license-based check. This was actually a pretty interesting refactoring because it wasn't just about finding and replacing — I had to understand how our licensing system worked and properly integrate this feature into it.
 
-It was a big refactor, but in the end it really cleaned up the code and made the licensing system much more structured. For me, it was a good learning experience in handling large-scale changes across multiple files while ensuring stability.”**
+So, the first thing I did was figure out which license SKU should control this feature. After discussing with the team, we decided it should be tied to the 'platform+' SKU, which made sense because multi-Salesforce support is a premium platform-level feature.
+
+Then, I needed to properly register this feature in our domain add-ons system. I started by adding a new constant called `MULTI_SFDC` in the `Hspt::Rights::Domain` module. This constant would serve as the identifier for this feature across the codebase.
+
+Next, I created a new `MultiSFDC` class in the `DomainAddons::Features` module. This class was responsible for defining how the feature authorization works — basically, it checks if an account has the platform+ SKU. I implemented this under the platform-specific path at `web/common/licenses/domain_addons/features/platform/`, which kept it organized with other platform-level features.
+
+After that, I had to register this new feature in the `DomainAddons::Platform` class so the system would recognize it as a valid domain add-on feature. This was important because the registration is what connects everything together and makes the authorization checks work properly.
+
+Now came the actual replacement work. I had to find every single place in the codebase where we were checking for `multi_sfdc_support` feature flag — and there were quite a few of them across different controllers, services, and views. In each of those places, I replaced the old feature flag check with a new method call: `domain.is_addon_feature_authorized?(current_account, Hspt::Rights::Domain::MULTI_SFDC, nil)`. This new check looks at the account's license instead of a feature flag.
+
+The tricky part was making sure I didn't miss any edge cases. Some places had conditional logic around the feature flag that needed to be preserved, and sometimes the feature flag check was nested inside other conditions. I had to carefully review each replacement to ensure the logic flow remained correct.
+
+After all the replacements, I went through a thorough testing process. I tested with accounts that had the platform+ license, accounts that didn't, and made sure the feature behaved exactly as it did before but now controlled by licenses. I also ran our full test suite to catch any regressions.
+
+This change wasn't small — it touched multiple files across the codebase. But in the end, it really cleaned up the code and made the licensing system much more structured and maintainable. Instead of having feature flags scattered around that admins had to manually manage, everything is now tied to the licenses that customers purchase, which makes much more sense from both a business and technical perspective.
+
+For me, it was a great learning experience in handling large-scale refactoring across multiple files while ensuring stability. I also got a deep understanding of how our domain add-ons and licensing architecture works, which has been really valuable for other projects."**
 
 
 ### How does a user get the license in Ecosystem?
