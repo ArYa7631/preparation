@@ -15,7 +15,7 @@
 - [Require VS Load](#require-vs-load)
 - [attr_accessor VS attr_accessible](#attr-accessor-vs-attr-accessible)
 - [Polymorphic Association](#polymorphic-association)
-- [MySQL VS PostgreSQL](#mysql-vs-postgresql)
+- [MySQL vs PostgreSQL vs MongoDB](#mysql-vs-postgresql-mongodb)
 - [form_for and form_tag](#form-for-vs-form-tag)
 
 ### Tips for Rails Interview Success
@@ -2561,7 +2561,231 @@ product.reviews.includes(:reviewer)
 # 5. Easy to extend - add new trackable types without changing existing code
 ```
 
-### <a id="mysql-vs-postgresql"></a>**MySQL VS PostgreSQL**
+### <a id="mysql-vs-postgresql-mongodb">**MySQL vs PostgreSQL vs MongoDB**</a>
+
+---
+
+## **Theoretical Understanding**
+
+### **What They Are:**
+
+**MySQL** and **PostgreSQL**  
+- Both are open-source **Relational Database Management Systems (RDBMS)**  
+- Store data in **tables (rows & columns)**  
+- Use **SQL** for queries  
+
+**MongoDB**  
+- A **NoSQL document database**  
+- Stores data in **JSON-like BSON documents**  
+- Schema-less (flexible structure)
+
+---
+
+## **Design Philosophy**
+
+### **MySQL**
+- **Speed-first**: Fast for read-heavy workloads  
+- **Simplicity**: Easy setup and administration  
+- **Web-friendly**: Popular in web apps (LAMP stack)  
+- **Pragmatic**: Focus on performance > strict standards  
+
+### **PostgreSQL**
+- **Standards-compliant** SQL  
+- **Feature-rich**, extensible  
+- **Strong data integrity**  
+- Best for complex queries & analytical workloads  
+
+### **MongoDB**
+- **Schema-less**: Flexible document structure  
+- **Horizontal scaling** via sharding  
+- **Developer-friendly** JSON storage  
+- Best for **unstructured or semi-structured** data  
+
+---
+
+## **Key Differences (Critical for Interviews)**
+
+### **1. ACID Compliance**
+- **PostgreSQL** → Fully ACID-compliant always  
+- **MySQL** → ACID only with InnoDB engine  
+- **MongoDB** → ACID at document level (multi-doc ACID supported since v4.0)  
+
+**Impact:**  
+- PostgreSQL best for strict data integrity  
+- MongoDB good for flexibility but not traditional RDBMS transactions  
+- MySQL is good middle ground  
+
+---
+
+### **2. Data Structure**
+- **MySQL** → Relational tables  
+- **PostgreSQL** → Relational tables + advanced types (JSONB, arrays)  
+- **MongoDB** → JSON-like documents, no tables  
+
+**Impact:**  
+- MongoDB best for dynamic schema  
+- PostgreSQL good for hybrid structured+semi-structured data  
+- MySQL good for simple structured data  
+
+---
+
+### **3. Query Language**
+- **MySQL** → SQL  
+- **PostgreSQL** → SQL + procedural languages  
+- **MongoDB** → Document query language (MQL - Mongo Query Language)  
+
+---
+
+### **4. Concurrency**
+- **PostgreSQL** → MVCC, best for concurrent writes  
+- **MySQL** → Row/table-level locking  
+- **MongoDB** → Document-level locking  
+
+---
+
+### **5. Performance**
+- **MySQL** → Fast for simple reads  
+- **PostgreSQL** → Best for complex queries  
+- **MongoDB** → Best for write-heavy & large distributed systems  
+
+---
+
+### **6. Full-Text Search**
+- **PostgreSQL** → Powerful, built-in  
+- **MySQL** → Basic  
+- **MongoDB** → Built-in but not as advanced as PostgreSQL  
+
+---
+
+### **7. Scalability**
+- **MySQL** → Vertical scaling preferred  
+- **PostgreSQL** → Vertical scaling + limited horizontal scaling  
+- **MongoDB** → Best horizontal scalability (sharding)  
+
+---
+
+## **Rails Context**
+
+### **PostgreSQL-Specific Examples**
+```ruby
+# Array column
+add_column :users, :tags, :string, array: true, default: []
+
+# JSONB querying
+User.where("preferences->>'theme' = ?", "dark")
+
+# UUID primary key
+enable_extension 'pgcrypto'
+create_table :users, id: :uuid do |t|
+  # ...
+end
+```
+
+### **MongoDB with Rails (Mongoid)**
+```ruby
+# Example Mongoid document
+class User
+  include Mongoid::Document
+  field :name, type: String
+  field :preferences, type: Hash
+  field :tags, type: Array
+end
+```
+
+---
+
+## **When to Choose Each**
+
+### **Choose PostgreSQL when:**
+- Need strong ACID & data integrity  
+- Complex queries/reporting  
+- Advanced types (JSONB, arrays, GIS/PostGIS)  
+- High write concurrency  
+- Enterprise systems  
+
+### **Choose MySQL when:**
+- Read-heavy applications  
+- Simple relational models  
+- Wide hosting support  
+- Performance > strict correctness  
+- Existing MySQL ecosystem (WordPress, etc.)  
+
+### **Choose MongoDB when:**
+- Schema flexibility needed  
+- Handling large, evolving JSON data  
+- Need for horizontal scaling (sharding)  
+- Fast prototyping  
+- IoT, analytics, logs, real-time data  
+
+---
+
+## **Interview Key Points**
+
+### **MySQL**
+- Fast reads  
+- Easy setup  
+- Large ecosystem  
+- Limited advanced features  
+
+### **PostgreSQL**
+- Most feature-rich RDBMS  
+- True ACID  
+- Best for complex queries  
+- Strong community support  
+
+### **MongoDB**
+- NoSQL, document-based  
+- Highly scalable  
+- Best for unstructured/semi-structured data  
+- Powerful for JSON workloads  
+
+---
+
+## **Quick Comparison Table**
+
+```
+Database     | Type         | Schema      | Scaling         | Best For
+-------------|--------------|-------------|-----------------|-----------------------------
+MySQL        | Relational   | Fixed       | Vertical        | Simple apps, read-heavy apps
+PostgreSQL   | Relational   | Fixed/Hybrid| Vertical        | Complex queries, analytics
+MongoDB      | NoSQL (Doc)  | Flexible    | Horizontal      | JSON data, large-scale apps
+```
+
+---
+
+## **Example Configurations**
+
+### **Rails - PostgreSQL**
+```yaml
+development:
+  adapter: postgresql
+  database: myapp_development
+  username: postgres
+  password: password
+  host: localhost
+```
+
+### **Rails - MySQL**
+```yaml
+development:
+  adapter: mysql2
+  database: myapp_development
+  username: root
+  password: password
+  host: localhost
+```
+
+### **Rails - MongoDB (Mongoid)**
+```yaml
+development:
+  clients:
+    default:
+      database: myapp_development
+      hosts:
+        - localhost:27017
+      options:
+        server_selection_timeout: 5
+```
 
 **Theoretical Understanding:**
 

@@ -1154,6 +1154,20 @@ end
 - Automatic rollback on exceptions
 - Database guarantees atomicity even on system crashes
 
+### **What are ACID properties?**
+
+- **ACID** stands for **Atomicity, Consistency, Isolation, Durability** — the four core guarantees provided by transactional databases.
+- **Atomicity**: All steps in a transaction succeed or none are applied (already covered above).
+- **Consistency**: Transactions transition the database from one valid state to another; enforce invariants with DB constraints, foreign keys, and validations.
+- **Isolation**: Concurrent transactions do not observe each other's intermediate states. ActiveRecord lets you specify isolation levels (e.g., `isolation: :read_committed`) and use row-level locks (`lock`, `select ... FOR UPDATE`) when needed.
+- **Durability**: Once a transaction commits, its effects are persisted by the database and survive crashes (PostgreSQL, MySQL ensure durability via WAL/redo logs).
+
+- **Quick notes for Rails interviews**:
+  - Use `ActiveRecord::Base.transaction` to get atomicity and automatic rollback on exceptions.
+  - Prefer `after_commit` callbacks for actions that should run only after a successful commit (emails, external API calls).
+  - Understand trade-offs: stronger isolation reduces anomalies but may increase contention; some distributed systems favor weaker guarantees for availability.
+
+
 ### <a id="polymorphic-associations"></a>20. **Polymorphic associations**
 
 **Question**: Implement a comment system that can comment on different types of content.

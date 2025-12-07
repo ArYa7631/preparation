@@ -13,6 +13,7 @@
 - [API Rate Limiting](#api-rate-limiting)
 - [Background Job Processing](#background-job-processing)
 - [Security Best Practices](#security-best-practices)
+- [PR Review Checklist – Senior Ruby on Rails Developer](#pr-review-checklist)
 
 ---
 
@@ -719,6 +720,131 @@ end
 - **Regular security** audits
 
 ---
+### <a id="pr-review-checklist"></a>**PR Review Checklist – Senior Ruby on Rails Developer**
+
+PR Review Checklist – Senior Ruby on Rails Developer**
+
+A concise guide for reviewing Pull Requests (PRs).
+
+## 1. Code Quality
+
+* Code should be clean, readable, maintainable.
+* Remove dead code and unnecessary comments.
+* Use consistent and meaningful naming.
+
+```ruby
+# Bad
+def x(a)
+  a * 2
+end
+# Good
+def double_value(number)
+  number * 2
+end
+```
+
+## 2. Functionality
+
+* Ensure code meets PR objectives.
+* Consider all edge cases.
+* Check for potential bugs.
+
+```ruby
+user = User.new(age: -1)
+user.valid? # Ensure validations prevent invalid data
+```
+
+## 3. Tests
+
+* Automated tests should exist.
+* Cover edge cases and validations.
+* Follow RSpec/FactoryBot best practices.
+
+```ruby
+RSpec.describe User, type: :model do
+  it "validates presence of email" do
+    user = User.new(email: nil)
+    expect(user.valid?).to be_falsey
+  end
+end
+```
+
+## 4. Security
+
+* Avoid vulnerabilities (SQL injection, XSS, mass assignment).
+* Use strong parameters.
+* Handle sensitive data securely.
+
+```ruby
+# Bad
+User.create(params[:user])
+# Good
+User.create(user_params)
+```
+
+## 5. Performance & Scalability
+
+* Optimize DB queries.
+* Avoid N+1 queries.
+* Use background jobs where needed.
+
+```ruby
+@users = User.includes(:posts).all
+```
+
+## 6. Rails Best Practices
+
+* Follow MVC pattern.
+* Use callbacks, concerns, service objects appropriately.
+* Keep code DRY and reusable.
+
+```ruby
+class SendWelcomeEmail
+  def initialize(user)
+    @user = user
+  end
+  def call
+    UserMailer.welcome_email(@user).deliver_later
+  end
+end
+```
+
+## 7. Database & Migrations
+
+* Migrations should be backward-compatible.
+* Add indexes where necessary.
+* Ensure foreign keys and constraints are correct.
+
+```ruby
+class AddIndexToUsersEmail < ActiveRecord::Migration[7.0]
+  def change
+    add_index :users, :email, unique: true
+  end
+end
+```
+
+## 8. UI / UX
+
+* Ensure design consistency.
+* Forms, buttons, feedback should be accessible.
+* Check responsiveness.
+
+## 9. Documentation
+
+* Document new features in README or API docs.
+* Comment complex methods.
+
+## 10. PR Review Questions
+
+* Why this implementation?
+* Any performance considerations?
+* Potential side effects?
+* Cleanup needed?
+* Are tests passing?
+* Can it be simplified?
+
+**Tip:** Give constructive feedback with examples or suggestions.
+
 
 ## Interview Tips for Situation-Based Questions
 
