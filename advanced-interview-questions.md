@@ -11,6 +11,8 @@
 - [What are Rails initializers?](#what-are-rails-initializers)
 - [Explain Rails database transactions](#explain-rails-database-transactions)
 - [What are Rails scopes vs class methods?](#what-are-rails-scopes-vs-class-methods)
+ - [Kafka & Event Streaming](#kafka-and-event-streaming)
+ - [Explain Redis (from scratch to end)](#explain-redis-from-scratch-to-end)
 
 ### Senior-Level Rails Developer Questions
 - [Explain Rails application architecture patterns](#explain-rails-application-architecture-patterns)
@@ -42,38 +44,226 @@
     - Fingerprinting for cache busting
     - CDN integration
 
-### <a id="what-are-rails-engines"></a>**What are Rails engines?**
+### <a id="what-are-rails-engines"></a>** Rails Engines (From Scratch to End) **
 
-Rails engines are mini-applications that can be embedded within a Rails application. They provide a way to share functionality across multiple applications while maintaining isolation and preventing conflicts.
+## 1. What Is a Rails Engine?
 
-**Key characteristics:**
-- Self-contained with their own models, views, controllers, and routes
-- Can be mounted as sub-applications within a main Rails app
-- Useful for creating reusable components like admin panels, APIs, or feature modules
-- Namespace isolation prevents conflicts with the main application
-- Can be packaged as gems for distribution
+A Rails Engine is a mini-Rails application within another Rails
+application. It can include: - Models - Controllers - Views - Routes -
+Migrations - Assets
 
-**Common use cases:**
-- Admin interfaces that can be shared across projects
-- API modules for specific functionality
-- Feature modules (e.g., blog, forum, e-commerce)
-- Third-party integrations
+Examples of engines: - Devise - Spree - ActiveAdmin
 
-**Example:**
-    ```ruby
-    # lib/my_engine/engine.rb
-    module MyEngine
-      class Engine < ::Rails::Engine
-        isolate_namespace MyEngine  # Prevents naming conflicts
-      end
+## 2. Why Use Rails Engines?
+
+### 2.1 Modular Architecture
+
+Break a large monolith into components: - Billing Engine - Admin
+Engine - Analytics Engine
+
+### 2.2 Reusable Code
+
+Engines can be packaged as gems and reused across projects.
+
+### 2.3 Team Separation
+
+Each team can own a feature engine.
+
+### 2.4 Microservices Without Extra Apps
+
+Engines allow service-like boundaries inside one application.
+
+## 3. Types of Engines
+
+### 3.1 Full Engine
+
+Contains full Rails stack: models, controllers, views, assets,
+migrations.
+
+### 3.2 Mountable Engine
+
+Namespaced and isolated. Recommended for modular systems.
+
+## 4. Create a New Rails Engine
+
+``` bash
+rails plugin new billing --mountable
+```
+
+Generated structure:
+
+    billing/
+      app/
+      config/
+      lib/
+      billing.gemspec
+
+## 5. Engine Configuration
+
+`lib/billing/engine.rb`
+
+``` ruby
+module Billing
+  class Engine < ::Rails::Engine
+    isolate_namespace Billing
+  end
+end
+```
+
+## 6. Engine Routes
+
+`config/routes.rb`
+
+``` ruby
+Billing::Engine.routes.draw do
+  resources :invoices
+end
+```
+
+## 7. Mount Engine in Main App
+
+`config/routes.rb`
+
+``` ruby
+mount Billing::Engine, at: "/billing"
+```
+
+Resulting route:
+
+    /billing/invoices
+
+## 8. Engine Controller
+
+`app/controllers/billing/invoices_controller.rb`
+
+``` ruby
+module Billing
+  class InvoicesController < ApplicationController
+    def index
+      @invoices = Invoice.all
     end
-    
-    # Mount in main app
-    # config/routes.rb
-    mount MyEngine::Engine, at: '/my_engine'
-    
-    # Access engine routes: /my_engine/posts, /my_engine/users, etc.
-    ```
+  end
+end
+```
+
+## 9. Engine Model
+
+`app/models/billing/invoice.rb`
+
+``` ruby
+module Billing
+  class Invoice < ApplicationRecord
+    self.table_name = "billing_invoices"
+  end
+end
+```
+
+## 10. Engine Migrations
+
+From main app:
+
+``` bash
+rails billing:install:migrations
+rails db:migrate
+```
+
+## 11. Engine Views
+
+`app/views/billing/invoices/index.html.erb`
+
+``` erb
+<h1>Invoices</h1>
+<%= render @invoices %>
+```
+
+## 12. Sharing Logic
+
+Engines can share: - Services - Helpers - Concerns
+
+Service example:
+
+``` ruby
+module Billing
+  class InvoiceProcessor
+    def call(invoice)
+      # logic
+    end
+  end
+end
+```
+
+## 13. Packaging as a Gem
+
+`billing.gemspec`
+
+``` ruby
+spec.name = "billing"
+spec.files = Dir["{app,lib,config}/**/*"]
+```
+
+Build gem:
+
+``` bash
+gem build billing.gemspec
+```
+
+## 14. How Rails Loads Engines
+
+-   Loads gem
+-   Loads engine class
+-   Merges routes
+-   Adds autoload paths
+-   Runs engine initializers
+
+## 15. When to Use Engines
+
+### Good Use Cases
+
+-   Large modular applications
+-   Reusable components
+-   Clean separation of features
+
+### Avoid Engines When
+
+-   App is small
+-   No modularity required
+
+## 16. Common Interview Questions
+
+### Q1: What is a Rails Engine?
+
+A mini Rails app embedded inside another app.
+
+### Q2: What is isolate_namespace?
+
+It prevents name conflicts across apps.
+
+### Q3: Difference between Railtie and Engine?
+
+-   Railtie: extend Rails framework
+-   Engine: mini Rails app
+
+### Q4: Why mount an engine?
+
+To make its routes available in host app.
+
+### Q5: When to build your own engine?
+
+When building reusable or isolated features.
+
+## 17. Best Practices
+
+-   Use mountable engines
+-   Keep strong namespaces
+-   Avoid unintended coupling
+-   Treat engines like separate services
+-   Keep migrations and assets organized
+
+## 18. Summary
+
+Rails Engines help you: - Build modular architectures - Reuse features
+across applications - Provide microservice-like separation - Maintain
+clean boundaries inside a monolith
 
 ### <a id="explain-rails-background-job-processing"></a>**Explain Rails background job processing**
     ```ruby
@@ -328,6 +518,230 @@ EmailJob.delay(queue: 'high_priority').perform(user.id)
 - **Dependencies**: Sidekiq requires Redis, Delayed Job is database-only
 - **Complexity**: Delayed Job is simpler to set up and maintain
 - **Use cases**: Sidekiq for high-performance apps, Delayed Job for simpler setups
+
+<a id="kafka-and-event-streaming"></a>
+# Kafka in Ruby on Rails (From Scratch to End)
+
+## 1. What is Kafka?
+
+Apache Kafka is a distributed event streaming platform used for: -
+High-throughput messaging - Real-time pipelines - Event-driven
+architectures - Log aggregation - Stream processing
+
+Key characteristics: - Publish/Subscribe model - Highly scalable and
+fault-tolerant - Stores messages on disk - Handles millions of messages
+per second
+
+## 2. Why Kafka in Rails?
+
+### 2.1 Event-Driven Architecture
+
+Emit and consume business events asynchronously.
+
+### 2.2 Microservices Communication
+
+Loosely-coupled services communicate through Kafka topics.
+
+### 2.3 Real-Time Logs / Metrics
+
+Send large volumes of logs to analytics systems.
+
+### 2.4 Background Event Handling
+
+Better performance than Redis/Sidekiq for high load.
+
+### 2.5 Stream Processing
+
+Supports analytics pipelines.
+
+## 3. Installing Kafka (Local)
+
+### macOS
+
+``` bash
+brew install kafka
+brew services start zookeeper
+brew services start kafka
+```
+
+List topics:
+
+``` bash
+kafka-topics --list --bootstrap-server localhost:9092
+```
+
+## 4. Add Kafka Gem to Rails
+
+``` ruby
+gem "ruby-kafka"
+```
+
+``` bash
+bundle install
+```
+
+## 5. Configure Kafka Client
+
+`config/initializers/kafka.rb`
+
+``` ruby
+$kafka = Kafka.new(
+  seed_brokers: ["localhost:9092"],
+  client_id: "rails_app"
+)
+```
+
+## 6. Producing Messages
+
+``` ruby
+class KafkaProducer
+  TOPIC = "orders"
+
+  def self.publish(event)
+    $kafka.deliver_message(event.to_json, topic: TOPIC)
+  end
+end
+```
+
+Usage:
+
+``` ruby
+KafkaProducer.publish({ order_id: 12, action: "created" })
+```
+
+## 7. Consuming Messages
+
+``` ruby
+class KafkaConsumer
+  def start
+    consumer = $kafka.consumer(group_id: "rails-consumer-group")
+    consumer.subscribe("orders")
+
+    consumer.each_message do |message|
+      process(JSON.parse(message.value))
+    end
+  end
+
+  def process(data)
+    Rails.logger.info "Received: #{data}"
+  end
+end
+```
+
+Start:
+
+``` bash
+rails runner "KafkaConsumer.new.start"
+```
+
+## 8. Kafka with Sidekiq
+
+``` ruby
+class EventWorker
+  include Sidekiq::Worker
+
+  def perform(order_id)
+    KafkaProducer.publish({ id: order_id, event: "processed" })
+  end
+end
+```
+
+## 9. Create Topic
+
+``` bash
+kafka-topics   --create   --topic orders   --bootstrap-server localhost:9092   --partitions 3   --replication-factor 1
+```
+
+## 10. Kafka in Microservices
+
+### Order Service
+
+Publishes:
+
+``` json
+{ "event": "OrderPlaced", "order_id": 101 }
+```
+
+### Inventory Service
+
+Consumes → updates stock
+
+### Notification Service
+
+Consumes → sends email/SMS
+
+## 11. Kafka vs Redis/Sidekiq
+
+  Feature      Kafka             Redis/Sidekiq
+  ------------ ----------------- -----------------
+  Storage      Persistent        In-memory
+  Replay       Yes               No
+  Throughput   Very High         Medium
+  Durability   Strong            Weak
+  Use Case     Event streaming   Background jobs
+
+## 12. Important CLI Commands
+
+List topics:
+
+``` bash
+kafka-topics --list --bootstrap-server localhost:9092
+```
+
+Describe:
+
+``` bash
+kafka-topics --describe --topic orders --bootstrap-server localhost:9092
+```
+
+Consume:
+
+``` bash
+kafka-console-consumer --topic orders --bootstrap-server localhost:9092
+```
+
+Produce:
+
+``` bash
+kafka-console-producer --topic orders --bootstrap-server localhost:9092
+```
+
+## 13. Interview Questions
+
+-   Why use Kafka over RabbitMQ or Redis?
+-   What is a topic? Partition?
+-   How consumer groups work?
+-   How Kafka ensures fault tolerance?
+-   Exactly-once vs at-least-once processing?
+
+## 14. Best Practices
+
+-   Use multiple partitions for scaling
+-   Keep messages small
+-   Use schemas (JSON/Avro)
+-   Use consumer groups
+-   Monitor lag
+-   Use async producers for heavy loads
+
+## 15. Production Example
+
+ENV:
+
+``` bash
+KAFKA_BROKERS="kafka1:9092,kafka2:9092,kafka3:9092"
+```
+
+Initializer:
+
+``` ruby
+Kafka.new(seed_brokers: ENV["KAFKA_BROKERS"].split(","))
+```
+
+## 16. Summary
+
+Kafka is ideal for Rails apps needing: - Event-driven architecture -
+Microservices communication - Real-time stream processing -
+High-throughput event logs - Scalable communication patterns
 
 ### <a id="what-are-rails-initializers"></a>**What are Rails initializers?**
     ```ruby
@@ -1837,3 +2251,203 @@ Ready for core Ruby concepts? Check out:
 - **[Core Ruby & Rails Concepts - Part 2](core-concepts-part-2.md)** - Architecture, OOP, modules
 - **[Core Ruby & Rails Concepts - Part 3](core-concepts-part-3.md)** - Advanced patterns, data types
 - **[ActiveRecord Questions](ruby-on-rails-activerecord-interview-questions.md)** - Database and ORM specific questions
+
+---
+
+### <a id="explain-redis-from-scratch-to-end"></a>**Explain Redis (from scratch to end)**
+
+## **1. What is Redis?**
+
+Redis (Remote Dictionary Server) is an **in-memory data store** used as
+a: - Cache - Message broker - Session store - Queue backend - Rate
+limiter
+
+Key properties: - Extremely fast (in-memory) - Supports data structures
+(strings, lists, sets, hashes, sorted sets) - Persistent options (RDB,
+AOF) - Works well with Rails via gems like **redis**, **sidekiq**,
+**redis-rails**
+
+## **2. Why Redis in Rails?**
+
+### **2.1 Caching**
+
+-   Low-latency data access
+-   Reduces DB load
+
+### **2.2 Background Jobs**
+
+-   Sidekiq stores job queues in Redis
+
+### **2.3 ActionCable**
+
+-   WebSockets pub/sub backend
+
+### **2.4 Rate Limiting**
+
+-   Throttle API requests
+
+### **2.5 Session Store**
+
+-   Persist user sessions efficiently
+
+## **3. Installing Redis**
+
+### **macOS**
+
+``` bash
+brew install redis
+brew services start redis
+redis-cli ping
+```
+
+## **4. Adding Redis to a Rails App**
+
+``` ruby
+# Gemfile
+gem "redis"
+```
+
+``` bash
+bundle install
+```
+
+## **5. Configure Redis Connection**
+
+`config/initializers/redis.rb`
+
+``` ruby
+Redis.current = Redis.new(
+  url: ENV.fetch("REDIS_URL") { "redis://localhost:6379/1" }
+)
+```
+
+## **6. Redis as Rails Cache Store**
+
+`config/environments/production.rb`
+
+``` ruby
+config.cache_store = :redis_cache_store, {
+  url: ENV["REDIS_URL"],
+  namespace: "myapp-cache"
+}
+```
+
+Example:
+
+``` ruby
+Rails.cache.fetch("user_#{id}", expires_in: 10.minutes) do
+  User.find(id)
+end
+```
+
+## **7. Redis for Session Store**
+
+``` ruby
+gem "redis-rails"
+```
+
+`config/initializers/session_store.rb`
+
+``` ruby
+Rails.application.config.session_store :redis_store, {
+  servers: [
+    { url: ENV["REDIS_URL"], namespace: "sessions" }
+  ],
+  key: "_myapp_session",
+  expire_after: 1.day
+}
+```
+
+## **8. Redis for ActionCable**
+
+`config/cable.yml`
+
+``` yaml
+production:
+  adapter: redis
+  url: <%= ENV["REDIS_URL"] %>
+```
+
+## **9. Redis with Sidekiq**
+
+`config/sidekiq.yml`
+
+``` yaml
+:queues:
+  - default
+  - mailers
+```
+
+`config/initializers/sidekiq.rb`
+
+``` ruby
+Sidekiq.configure_server { |c| c.redis = { url: ENV["REDIS_URL"] } }
+Sidekiq.configure_client { |c| c.redis = { url: ENV["REDIS_URL"] } }
+```
+
+Worker:
+
+``` ruby
+class HardWorker
+  include Sidekiq::Worker
+  def perform(user_id)
+    user = User.find(user_id)
+    user.update(last_active_at: Time.current)
+  end
+end
+```
+
+## **10. Redis Rate Limiting**
+
+``` ruby
+class RateLimiter
+  def initialize(user_id)
+    @key = "rate_limit:#{user_id}"
+  end
+
+  def allowed?
+    count = Redis.current.incr(@key)
+    Redis.current.expire(@key, 60) if count == 1
+    count <= 30
+  end
+end
+```
+
+## **11. Redis CLI Commands**
+
+``` bash
+SET key value
+GET key
+DEL key
+INCR key
+EXPIRE key seconds
+TTL key
+FLUSHALL
+```
+
+## **12. Interview Questions**
+
+-   Why Redis vs Memcached?
+-   Does Redis persist data?
+-   How Sidekiq uses Redis?
+-   Redis vs database?
+-   Does Redis scale?
+
+## **13. Best Practices**
+
+-   Always set expiration
+-   Use namespaces
+-   Avoid large keys
+-   Monitor memory
+-   Separate DBs for cache/sessions/jobs
+
+## **14. Production Tips**
+
+``` bash
+REDIS_URL=redis://:password@redis-primary:6379/0
+```
+
+## **15. Summary**
+
+Redis helps Rails in: - Caching - Background jobs - WebSockets -
+Sessions - Rate limiting
