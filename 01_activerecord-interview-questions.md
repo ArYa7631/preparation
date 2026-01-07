@@ -68,6 +68,19 @@ Employee.nth_highest_salary(3)  # 3rd highest salary
 Employee.nth_highest_salary(5)  # 5th highest salary
 ```
 
+**SQL Generated**:
+```sql
+-- For nth_highest_salary(3)
+SELECT DISTINCT "employees"."salary" FROM "employees" 
+ORDER BY "employees"."salary" DESC 
+LIMIT 1 OFFSET 2;
+
+-- For nth_highest_salary(5)
+SELECT DISTINCT "employees"."salary" FROM "employees" 
+ORDER BY "employees"."salary" DESC 
+LIMIT 1 OFFSET 4;
+```
+
 ### <a id="find-duplicate-records"></a>3. **Find duplicate records**
 
 **Question**: Find all duplicate records based on a specific column.
@@ -87,6 +100,34 @@ User.select(:first_name, :last_name, :email)
 
 # Get count of duplicates
 User.select(:email).group(:email).having("COUNT(*) > 1").count
+```
+
+**SQL Generated**:
+```sql
+-- Find duplicates by email
+SELECT "users"."email" FROM "users" 
+GROUP BY "users"."email" 
+HAVING COUNT(*) > 1;
+
+-- Find all records with duplicate emails
+SELECT "users".* FROM "users" 
+WHERE "users"."email" IN (
+  SELECT "users"."email" FROM "users" 
+  GROUP BY "users"."email" 
+  HAVING COUNT(*) > 1
+);
+
+-- Find duplicates by multiple columns
+SELECT "users"."first_name", "users"."last_name", "users"."email" 
+FROM "users" 
+GROUP BY "users"."first_name", "users"."last_name", "users"."email" 
+HAVING COUNT(*) > 1;
+
+-- Get count of duplicates
+SELECT "users"."email", COUNT(*) as count 
+FROM "users" 
+GROUP BY "users"."email" 
+HAVING COUNT(*) > 1;
 ```
 
 ### <a id="find-records-with-null-values"></a>4. **Find records with null values**
@@ -109,6 +150,27 @@ User.where("email IS NULL OR phone IS NULL")
 
 # Find records where all specified columns are null
 User.where("email IS NULL AND phone IS NULL")
+```
+
+**SQL Generated**:
+```sql
+-- Find records where email is null
+SELECT "users".* FROM "users" WHERE "users"."email" IS NULL;
+
+-- Find records where email is not null
+SELECT "users".* FROM "users" WHERE "users"."email" IS NOT NULL;
+
+-- Find records where multiple columns are null
+SELECT "users".* FROM "users" 
+WHERE "users"."email" IS NULL AND "users"."phone" IS NULL;
+
+-- Find records where at least one column is null
+SELECT "users".* FROM "users" 
+WHERE "users"."email" IS NULL OR "users"."phone" IS NULL;
+
+-- Find records where all specified columns are null
+SELECT "users".* FROM "users" 
+WHERE "users"."email" IS NULL AND "users"."phone" IS NULL;
 ```
 
 ---
@@ -140,6 +202,33 @@ Employee.group(:department, :position)
         .select(:department, :position, 'COUNT(*) as count')
 ```
 
+**SQL Generated**:
+```sql
+-- Basic group by with aggregations
+SELECT "employees"."department", 
+       AVG(salary) as avg_salary,
+       COUNT(*) as employee_count,
+       MAX(salary) as max_salary,
+       MIN(salary) as min_salary
+FROM "employees" 
+GROUP BY "employees"."department";
+
+-- With additional conditions
+SELECT "employees"."department", 
+       AVG(salary) as avg_salary
+FROM "employees" 
+WHERE "employees"."active" = true
+GROUP BY "employees"."department"
+HAVING AVG(salary) > 50000;
+
+-- Group by multiple columns
+SELECT "employees"."department", 
+       "employees"."position", 
+       COUNT(*) as count
+FROM "employees" 
+GROUP BY "employees"."department", "employees"."position";
+```
+
 ### <a id="self-joins"></a>6. **Self joins**
 
 **Question**: Find all employees who have the same manager.
@@ -164,6 +253,19 @@ class Employee < ApplicationRecord
 end
 ```
 
+**SQL Generated**:
+```sql
+-- Find employees with same manager (self join)
+SELECT employees.*, e2.name as colleague_name
+FROM "employees" 
+INNER JOIN employees e2 ON employees.manager_id = e2.manager_id
+WHERE employees.id != e2.id;
+
+-- Alternative using associations (colleagues method)
+SELECT "employees".* FROM "employees" 
+WHERE "employees"."manager_id" = ? AND "employees"."id" != ?;
+```
+
 
 ### <a id="conditional-aggregations"></a>8. **Conditional aggregations**
 
@@ -186,6 +288,26 @@ Employee.select("
   SUM(CASE WHEN gender = 'M' THEN 1 ELSE 0 END) as male_count,
   SUM(CASE WHEN gender = 'F' THEN 1 ELSE 0 END) as female_count
 ")
+```
+
+**SQL Generated**:
+```sql
+-- Using CASE statements
+SELECT "employees"."gender",
+       COUNT(*) as total_count,
+       AVG(CASE WHEN active = true THEN salary END) as avg_active_salary,
+       AVG(CASE WHEN active = false THEN salary END) as avg_inactive_salary
+FROM "employees" 
+GROUP BY "employees"."gender";
+
+-- Count with conditions
+SELECT 
+  COUNT(*) as total_employees,
+  COUNT(CASE WHEN active = true THEN 1 END) as active_employees,
+  COUNT(CASE WHEN salary > 50000 THEN 1 END) as high_earners,
+  SUM(CASE WHEN gender = 'M' THEN 1 ELSE 0 END) as male_count,
+  SUM(CASE WHEN gender = 'F' THEN 1 ELSE 0 END) as female_count
+FROM "employees";
 ```
 
 ---
@@ -223,6 +345,36 @@ Order.joins(:order_items)
      .select('orders.*, SUM(order_items.quantity * order_items.price) as total_amount')
 ```
 
+**SQL Generated**:
+```sql
+-- Multiple joins
+SELECT orders.*, customers.name as customer_name, products.name as product_name
+FROM "orders" 
+INNER JOIN "customers" ON "customers"."id" = "orders"."customer_id"
+INNER JOIN "order_items" ON "order_items"."order_id" = "orders"."id"
+INNER JOIN "products" ON "products"."id" = "order_items"."product_id";
+
+-- Joins with conditions
+SELECT orders.*, customers.name as customer_name, products.name as product_name
+FROM "orders" 
+INNER JOIN "customers" ON "customers"."id" = "orders"."customer_id"
+INNER JOIN "order_items" ON "order_items"."order_id" = "orders"."id"
+INNER JOIN "products" ON "products"."id" = "order_items"."product_id"
+WHERE "customers"."active" = true AND "products"."category" = 'Electronics';
+
+-- Left joins (includes orders without products)
+SELECT "orders".* FROM "orders" 
+LEFT OUTER JOIN "order_items" ON "order_items"."order_id" = "orders"."id"
+LEFT OUTER JOIN "products" ON "products"."id" = "order_items"."product_id"
+WHERE "products"."id" IS NULL;
+
+-- Joins with aggregations
+SELECT orders.*, SUM(order_items.quantity * order_items.price) as total_amount
+FROM "orders" 
+INNER JOIN "order_items" ON "order_items"."order_id" = "orders"."id"
+GROUP BY "orders"."id";
+```
+
 ### <a id="has-many-through"></a>10. **Has many through associations**
 
 **Question**: Find all users who have purchased products from a specific category.
@@ -247,6 +399,29 @@ User.joins(:orders)
 User.joins(orders: :order_items)
     .group(:id)
     .select('users.*, SUM(order_items.quantity * order_items.price) as total_spent')
+```
+
+**SQL Generated**:
+```sql
+-- Users who bought electronics
+SELECT DISTINCT "users".* FROM "users" 
+INNER JOIN "orders" ON "orders"."user_id" = "users"."id"
+INNER JOIN "order_items" ON "order_items"."order_id" = "orders"."id"
+INNER JOIN "products" ON "products"."id" = "order_items"."product_id"
+WHERE "products"."category" = 'Electronics';
+
+-- Users with their purchase counts
+SELECT users.*, COUNT(orders.id) as order_count
+FROM "users" 
+INNER JOIN "orders" ON "orders"."user_id" = "users"."id"
+GROUP BY "users"."id";
+
+-- Users with total spent
+SELECT users.*, SUM(order_items.quantity * order_items.price) as total_spent
+FROM "users" 
+INNER JOIN "orders" ON "orders"."user_id" = "users"."id"
+INNER JOIN "order_items" ON "order_items"."order_id" = "orders"."id"
+GROUP BY "users"."id";
 ```
 
 ### <a id="includes-vs-joins"></a>11. **Difference between includes and joins**
@@ -435,6 +610,39 @@ User.joins(:orders)
     .select('users.*, COUNT(orders.id) as order_count')
 ```
 
+**SQL Generated**:
+```sql
+-- N+1 Problem Example (BAD - Multiple queries)
+-- First query:
+SELECT "users".* FROM "users";
+-- Then for each user (N queries):
+SELECT COUNT(*) FROM "orders" WHERE "orders"."user_id" = ?;
+
+-- Solution 1: includes (eager loading)
+-- First query:
+SELECT "users".* FROM "users";
+-- Second query:
+SELECT "orders".* FROM "orders" WHERE "orders"."user_id" IN (1, 2, 3, ...);
+
+-- Solution 2: preload (separate queries)
+-- First query:
+SELECT "users".* FROM "users";
+-- Second query:
+SELECT "orders".* FROM "orders" WHERE "orders"."user_id" IN (1, 2, 3, ...);
+
+-- Solution 3: eager_load (single query with joins)
+SELECT "users"."id" AS t0_r0, "users"."name" AS t0_r1, ...,
+       "orders"."id" AS t1_r0, "orders"."user_id" AS t1_r1, ...
+FROM "users" 
+LEFT OUTER JOIN "orders" ON "orders"."user_id" = "users"."id";
+
+-- Solution 4: joins with aggregations
+SELECT users.*, COUNT(orders.id) as order_count
+FROM "users" 
+INNER JOIN "orders" ON "orders"."user_id" = "users"."id"
+GROUP BY "users"."id";
+```
+
 ### <a id="query-optimization"></a>13. **Query optimization**
 
 **Question**: Optimize a slow query that finds users with their latest order.
@@ -463,6 +671,43 @@ User.joins("INNER JOIN (
   FROM orders
   GROUP BY user_id
 ) latest_orders ON users.id = latest_orders.user_id")
+```
+
+**SQL Generated**:
+```sql
+-- Slow query (N+1)
+-- First query:
+SELECT "users".* FROM "users";
+-- Then for each user (N queries):
+SELECT "orders".* FROM "orders" 
+WHERE "orders"."user_id" = ? 
+ORDER BY "orders"."created_at" DESC 
+LIMIT 1;
+
+-- Optimized solution 1: Using includes with order
+-- First query:
+SELECT "users".* FROM "users";
+-- Second query:
+SELECT "orders".* FROM "orders" 
+WHERE "orders"."user_id" IN (1, 2, 3, ...)
+ORDER BY "orders"."created_at" DESC;
+
+-- Optimized solution 2: Using joins with window functions
+SELECT users.*, 
+       FIRST_VALUE(orders.id) OVER (
+         PARTITION BY users.id 
+         ORDER BY orders.created_at DESC
+       ) as latest_order_id
+FROM "users" 
+INNER JOIN "orders" ON "orders"."user_id" = "users"."id";
+
+-- Optimized solution 3: Using subquery
+SELECT "users".* FROM "users" 
+INNER JOIN (
+  SELECT user_id, MAX(created_at) as latest_order_date
+  FROM orders
+  GROUP BY user_id
+) latest_orders ON users.id = latest_orders.user_id;
 ```
 
 ### <a id="database-indexing"></a>14. **How does database indexing work?**
@@ -834,6 +1079,42 @@ User.find_in_batches(batch_size: 1000) do |batch|
 end
 ```
 
+**SQL Generated**:
+```sql
+-- Bulk insert
+INSERT INTO "users" ("name", "email", "created_at", "updated_at") 
+VALUES 
+  ('John', 'john@example.com', '2024-01-01 12:00:00', '2024-01-01 12:00:00'),
+  ('Jane', 'jane@example.com', '2024-01-01 12:00:00', '2024-01-01 12:00:00'),
+  ('Bob', 'bob@example.com', '2024-01-01 12:00:00', '2024-01-01 12:00:00');
+
+-- Bulk update
+UPDATE "users" 
+SET "active" = true, "updated_at" = '2024-01-01 12:00:00'
+WHERE "users"."active" = false;
+
+-- Upsert (insert or update)
+INSERT INTO "users" ("name", "email", "created_at", "updated_at") 
+VALUES 
+  ('John', 'john@example.com', '2024-01-01 12:00:00', '2024-01-01 12:00:00'),
+  ('Jane', 'jane@example.com', '2024-01-01 12:00:00', '2024-01-01 12:00:00')
+ON CONFLICT ("email") 
+DO UPDATE SET 
+  "name" = EXCLUDED."name",
+  "updated_at" = EXCLUDED."updated_at";
+
+-- Batch processing
+SELECT "users".* FROM "users" 
+WHERE "users"."id" > 0 
+ORDER BY "users"."id" ASC 
+LIMIT 1000;
+-- Then for next batch:
+SELECT "users".* FROM "users" 
+WHERE "users"."id" > 1000 
+ORDER BY "users"."id" ASC 
+LIMIT 1000;
+```
+
 ---
 
 ## Advanced Active Record Features
@@ -872,6 +1153,44 @@ end
 # Usage and chaining
 User.active.recent.by_role('customer').with_orders
 User.high_spenders.by_status('verified')
+```
+
+**SQL Generated**:
+```sql
+-- Basic scopes
+SELECT "users".* FROM "users" WHERE "users"."active" = true;
+SELECT "users".* FROM "users" WHERE "users"."active" = false;
+SELECT "users".* FROM "users" WHERE (created_at > '2023-12-01 00:00:00');
+SELECT "users".* FROM "users" WHERE "users"."role" = 'admin';
+
+-- Scopes with joins
+SELECT DISTINCT "users".* FROM "users" 
+INNER JOIN "orders" ON "orders"."user_id" = "users"."id";
+
+SELECT DISTINCT "users".* FROM "users" 
+INNER JOIN "orders" ON "orders"."user_id" = "users"."id"
+WHERE (orders.created_at > '2024-01-01 00:00:00');
+
+-- Scopes with aggregations
+SELECT "users".*, SUM(orders.total) as total_spent
+FROM "users" 
+INNER JOIN "orders" ON "orders"."user_id" = "users"."id"
+GROUP BY "users"."id"
+HAVING SUM(orders.total) > 1000;
+
+-- Chained scopes
+SELECT DISTINCT "users".* FROM "users" 
+INNER JOIN "orders" ON "orders"."user_id" = "users"."id"
+WHERE "users"."active" = true 
+  AND (users.created_at > '2023-12-01 00:00:00')
+  AND "users"."role" = 'customer';
+
+SELECT "users".*, SUM(orders.total) as total_spent
+FROM "users" 
+INNER JOIN "orders" ON "orders"."user_id" = "users"."id"
+WHERE "users"."status" = 'verified'
+GROUP BY "users"."id"
+HAVING SUM(orders.total) > 1000;
 ```
 
 ### <a id="callbacks-and-validations"></a>17. **Callbacks and validations**
@@ -982,6 +1301,25 @@ end
 sender_account = Account.find(1)
 recipient_account = Account.find(2)
 sender_account.transfer_to(recipient_account, 100)
+```
+
+**SQL Generated**:
+```sql
+-- Transfer transaction
+BEGIN;
+  -- Lock both accounts
+  SELECT "accounts".* FROM "accounts" WHERE "accounts"."id" = 1 FOR UPDATE;
+  SELECT "accounts".* FROM "accounts" WHERE "accounts"."id" = 2 FOR UPDATE;
+  
+  -- Update balances
+  UPDATE "accounts" SET "balance" = "balance" - 100, "updated_at" = '2024-01-01 12:00:00' WHERE "accounts"."id" = 1;
+  UPDATE "accounts" SET "balance" = "balance" + 100, "updated_at" = '2024-01-01 12:00:00' WHERE "accounts"."id" = 2;
+  
+  -- Create transaction record
+  INSERT INTO "transactions" ("from_account_id", "to_account_id", "amount", "transaction_type", "created_at", "updated_at") 
+  VALUES (1, 2, 100, 'transfer', '2024-01-01 12:00:00', '2024-01-01 12:00:00');
+COMMIT;
+-- If any error occurs, ROLLBACK is automatically executed
 ```
 
 ### <a id="atomicity-in-databases"></a>19. **What is atomicity in databases?**
@@ -1208,6 +1546,26 @@ user.comments.includes(:commentable)
 Comment.where(commentable_type: 'Post').includes(:commentable)
 ```
 
+**SQL Generated**:
+```sql
+-- Create comment on post
+INSERT INTO "comments" ("commentable_type", "commentable_id", "user_id", "content", "created_at", "updated_at") 
+VALUES ('Post', 1, 1, 'Great post!', '2024-01-01 12:00:00', '2024-01-01 12:00:00');
+
+-- Create comment on article
+INSERT INTO "comments" ("commentable_type", "commentable_id", "user_id", "content", "created_at", "updated_at") 
+VALUES ('Article', 1, 1, 'Interesting article!', '2024-01-01 12:00:00', '2024-01-01 12:00:00');
+
+-- Find all comments by a user
+SELECT "comments".* FROM "comments" WHERE "comments"."user_id" = ?;
+SELECT "posts".* FROM "posts" WHERE "posts"."id" IN (1, 2, 3);
+SELECT "articles".* FROM "articles" WHERE "articles"."id" IN (4, 5, 6);
+
+-- Find comments on posts only
+SELECT "comments".* FROM "comments" WHERE "comments"."commentable_type" = 'Post';
+SELECT "posts".* FROM "posts" WHERE "posts"."id" IN (1, 2, 3);
+```
+
 ### <a id="custom-sql"></a>21. **Custom SQL queries**
 
 **Question**: Write custom SQL queries when Active Record methods are insufficient.
@@ -1285,6 +1643,15 @@ Employee.group(:department)
         .first
 ```
 
+**SQL Generated**:
+```sql
+SELECT "employees"."department", AVG(salary) as avg_salary
+FROM "employees" 
+GROUP BY "employees"."department"
+ORDER BY avg_salary DESC
+LIMIT 1;
+```
+
 **Problem 2**: Find employees who earn more than their department average
 ```ruby
 Employee.joins("INNER JOIN (
@@ -1293,6 +1660,17 @@ Employee.joins("INNER JOIN (
   GROUP BY department
 ) dept_stats ON employees.department = dept_stats.department")
 .where("employees.salary > dept_stats.dept_avg")
+```
+
+**SQL Generated**:
+```sql
+SELECT "employees".* FROM "employees" 
+INNER JOIN (
+  SELECT department, AVG(salary) as dept_avg
+  FROM employees
+  GROUP BY department
+) dept_stats ON employees.department = dept_stats.department
+WHERE employees.salary > dept_stats.dept_avg;
 ```
 
 **Problem 3**: Find consecutive login days for users
@@ -1304,10 +1682,27 @@ User.joins(:login_events)
     .having("COUNT(DISTINCT DATE(login_events.created_at)) >= 7")
 ```
 
+**SQL Generated**:
+```sql
+SELECT users.*, 
+       COUNT(DISTINCT DATE(login_events.created_at)) as login_days
+FROM "users" 
+INNER JOIN "login_events" ON "login_events"."user_id" = "users"."id"
+GROUP BY "users"."id"
+HAVING COUNT(DISTINCT DATE(login_events.created_at)) >= 7;
+```
+
 **Problem 4**: Find products that have never been ordered
 ```ruby
 Product.left_joins(:order_items)
        .where(order_items: { id: nil })
+```
+
+**SQL Generated**:
+```sql
+SELECT "products".* FROM "products" 
+LEFT OUTER JOIN "order_items" ON "order_items"."product_id" = "products"."id"
+WHERE "order_items"."id" IS NULL;
 ```
 
 **Problem 5**: Find the most popular product by order count
@@ -1317,6 +1712,16 @@ Product.joins(:order_items)
        .select('products.*, COUNT(order_items.id) as order_count')
        .order('order_count DESC')
        .first
+```
+
+**SQL Generated**:
+```sql
+SELECT products.*, COUNT(order_items.id) as order_count
+FROM "products" 
+INNER JOIN "order_items" ON "order_items"."product_id" = "products"."id"
+GROUP BY "products"."id"
+ORDER BY order_count DESC
+LIMIT 1;
 ```
 
 ### <a id="callback-sequence-calling"></a>23. **Explain Rails Callback Sequence Calling**

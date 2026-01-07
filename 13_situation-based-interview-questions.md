@@ -13,7 +13,9 @@
 - [API Rate Limiting](#api-rate-limiting)
 - [Background Job Processing](#background-job-processing)
 - [Security Best Practices](#security-best-practices)
-- [PR Review Checklist – Senior Ruby on Rails Developer](#pr-review-checklist)
+- [Highspot-Salesforce RESTful API Integration](#highspot-salesforce-restful-api-integration)
+- [Authentication & Authorization in Rails (CSRF, JWT, Devise)](#authentication-authorization-in-rails)
+
 
 ---
 
@@ -718,5 +720,1015 @@ end
 - **Security event** logging
 - **Intrusion detection** systems
 - **Regular security** audits
+
+### <a id="highspot-salesforce-restful-api-integration"></a>**Highspot-Salesforce RESTful API Integration**
+
+**Question**: Describe a real-world scenario where you implemented a RESTful API integration. What was the requirement, and how did you handle the technical challenges?
+
+**Answer**:
+
+**Scenario: Highspot-Salesforce Content Engagement Data Synchronization**
+
+**Business Requirement:**
+We needed to build a bidirectional synchronization system between Highspot (sales content platform) and Salesforce (CRM) to:
+1. **Sync content engagement data** from Highspot to Salesforce as custom objects
+2. **Track sales rep activities** (content views, shares, downloads) in Salesforce
+3. **Enable real-time updates** when content is viewed/shared in Highspot
+4. **Maintain data consistency** between both systems
+5. **Handle large volumes** of engagement data (millions of records per month)
+
+**Technical Challenges:**
+- Different data models between Highspot and Salesforce
+- API rate limits (Salesforce: 24,000 API calls/day, Highspot: 1000 requests/minute)
+- Real-time vs batch processing requirements
+- Data conflict resolution
+- Authentication and token management
+- Error handling and retry logic
+- Webhook reliability
+
+**1. RESTful API Design**
+
+**Highspot API Integration:**
+```ruby
+# Highspot API Service
+class HighspotApiService
+  BASE_URL = 'https://api.highspot.com/api/v1'
+  
+  def initialize(access_token)
+    @access_token = access_token
+    @client = Faraday.new(url: BASE_URL) do |conn|
+      conn.request :json
+      conn.response :json
+      conn.adapter Faraday.default_adapter
+      conn.headers['Authorization'] = "Bearer #{access_token}"
+      conn.headers['Content-Type'] = 'application/json'
+    end
+  end
+  
+  # GET /content/{content_id}/engagements
+  def get_content_engagements(content_id, page: 1, per_page: 100)
+    response = @client.get("content/#{content_id}/engagements") do |req|
+      req.params['page'] = page
+      req.params['per_page'] = per_page
+    end
+    
+    handle_response(response)
+  end
+  
+  # GET /users/{user_id}/activities
+  def get_user_activities(user_id, since: nil)
+    response = @client.get("users/#{user_id}/activities") do |req|
+      req.params['since'] = since if since
+    end
+    
+    handle_response(response)
+  end
+  
+  private
+  
+  def handle_response(response)
+    case response.status
+    when 200..299
+      response.body
+    when 401
+      raise HighspotApiService::AuthenticationError, 'Invalid access token'
+    when 429
+      raise HighspotApiService::RateLimitError, 'Rate limit exceeded'
+    when 500..599
+      raise HighspotApiService::ServerError, 'Highspot API server error'
+    else
+      raise HighspotApiService::ApiError, "API error: #{response.status}"
+    end
+  end
+end
+```
+
+**Salesforce API Integration:**
+```ruby
+# Salesforce API Service
+class SalesforceApiService
+  BASE_URL = 'https://yourinstance.salesforce.com/services/data/v57.0'
+  
+  def initialize(access_token, instance_url)
+    @access_token = access_token
+    @instance_url = instance_url
+    @client = Faraday.new(url: BASE_URL) do |conn|
+      conn.request :json
+      conn.response :json
+      conn.adapter Faraday.default_adapter
+      conn.headers['Authorization'] = "Bearer #{access_token}"
+      conn.headers['Content-Type'] = 'application/json'
+    end
+  end
+  
+  # POST /sobjects/ContentEngagement__c/
+  def create_content_engagement(data)
+    response = @client.post('sobjects/ContentEngagement__c/', data)
+    handle_response(response)
+  end
+  
+  # PATCH /sobjects/ContentEngagement__c/{id}
+  def update_content_engagement(id, data)
+    response = @client.patch("sobjects/ContentEngagement__c/#{id}", data)
+    handle_response(response)
+  end
+  
+  # GET /query/?q=SELECT...
+  def query_engagements(highspot_engagement_id)
+    query = "SELECT Id, HighspotEngagementId__c FROM ContentEngagement__c WHERE HighspotEngagementId__c = '#{highspot_engagement_id}'"
+    response = @client.get('query/', q: query)
+    handle_response(response)
+  end
+  
+  # Bulk API for large datasets
+  def bulk_create_engagements(records)
+    # Use Salesforce Bulk API 2.0 for large datasets
+    job_id = create_bulk_job
+    upload_bulk_data(job_id, records)
+    close_bulk_job(job_id)
+    monitor_bulk_job(job_id)
+  end
+  
+  private
+  
+  def handle_response(response)
+    case response.status
+    when 200..299
+      response.body
+    when 401
+      raise SalesforceApiService::AuthenticationError, 'Invalid access token'
+    when 429
+      raise SalesforceApiService::RateLimitError, 'Rate limit exceeded'
+    else
+      raise SalesforceApiService::ApiError, "API error: #{response.status}"
+    end
+  end
+end
+```
+
+**2. Authentication & Token Management**
+
+```ruby
+# OAuth Token Management Service
+class SalesforceTokenService
+  def self.refresh_token_if_needed
+    token = SalesforceToken.current
+    
+    # Refresh if expires within 5 minutes
+    if token.expires_at < 5.minutes.from_now
+      refresh_access_token(token)
+    end
+    
+    token.access_token
+  end
+  
+  private
+  
+  def self.refresh_access_token(token)
+    response = Faraday.post('https://login.salesforce.com/services/oauth2/token') do |req|
+      req.params['grant_type'] = 'refresh_token'
+      req.params['refresh_token'] = token.refresh_token
+      req.params['client_id'] = ENV['SALESFORCE_CLIENT_ID']
+      req.params['client_secret'] = ENV['SALESFORCE_CLIENT_SECRET']
+    end
+    
+    data = JSON.parse(response.body)
+    
+    token.update!(
+      access_token: data['access_token'],
+      expires_at: Time.current + data['expires_in'].seconds,
+      instance_url: data['instance_url']
+    )
+  end
+end
+
+# Usage in API service
+class SalesforceApiService
+  def initialize
+    @access_token = SalesforceTokenService.refresh_token_if_needed
+    @instance_url = SalesforceToken.current.instance_url
+  end
+end
+```
+
+**3. Data Synchronization Service**
+
+```ruby
+# Content Engagement Sync Service
+class ContentEngagementSyncService
+  def initialize(highspot_engagement_id)
+    @highspot_engagement_id = highspot_engagement_id
+    @highspot_api = HighspotApiService.new(HighspotToken.current.access_token)
+    @salesforce_api = SalesforceApiService.new
+  end
+  
+  def sync
+    # 1. Fetch engagement data from Highspot
+    engagement_data = fetch_from_highspot
+    
+    # 2. Transform data to Salesforce format
+    salesforce_data = transform_to_salesforce_format(engagement_data)
+    
+    # 3. Check if record exists in Salesforce
+    existing_record = find_existing_in_salesforce
+    
+    # 4. Create or update in Salesforce
+    if existing_record
+      update_in_salesforce(existing_record['Id'], salesforce_data)
+    else
+      create_in_salesforce(salesforce_data)
+    end
+    
+    # 5. Log sync status
+    log_sync_status(engagement_data, success: true)
+  rescue => e
+    log_sync_status(engagement_data, success: false, error: e.message)
+    raise
+  end
+  
+  private
+  
+  def fetch_from_highspot
+    @highspot_api.get_engagement(@highspot_engagement_id)
+  end
+  
+  def transform_to_salesforce_format(highspot_data)
+    {
+      HighspotEngagementId__c: highspot_data['id'],
+      ContentId__c: highspot_data['content_id'],
+      UserId__c: highspot_data['user_id'],
+      EngagementType__c: highspot_data['type'], # 'view', 'share', 'download'
+      EngagementDate__c: DateTime.parse(highspot_data['created_at']),
+      Duration__c: highspot_data['duration'],
+      DeviceType__c: highspot_data['device_type']
+    }
+  end
+  
+  def find_existing_in_salesforce
+    @salesforce_api.query_engagements(@highspot_engagement_id)['records'].first
+  end
+  
+  def create_in_salesforce(data)
+    @salesforce_api.create_content_engagement(data)
+  end
+  
+  def update_in_salesforce(id, data)
+    @salesforce_api.update_content_engagement(id, data)
+  end
+  
+  def log_sync_status(engagement_data, success:, error: nil)
+    SyncLog.create!(
+      highspot_engagement_id: @highspot_engagement_id,
+      status: success ? 'success' : 'failed',
+      error_message: error,
+      synced_at: Time.current,
+      engagement_data: engagement_data
+    )
+  end
+end
+```
+
+**4. Background Job Processing with Rate Limiting**
+
+```ruby
+# Background job for syncing engagements
+class SyncEngagementJob < ApplicationJob
+  queue_as :salesforce_sync
+  retry_on SalesforceApiService::RateLimitError, wait: :exponentially_longer, attempts: 5
+  retry_on HighspotApiService::RateLimitError, wait: :exponentially_longer, attempts: 5
+  retry_on Faraday::TimeoutError, wait: 30.seconds, attempts: 3
+  
+  def perform(highspot_engagement_id)
+    # Rate limiting check
+    check_rate_limits
+    
+    # Perform sync
+    ContentEngagementSyncService.new(highspot_engagement_id).sync
+  end
+  
+  private
+  
+  def check_rate_limits
+    # Check Salesforce API call limit
+    salesforce_calls = Rails.cache.read('salesforce_api_calls_today') || 0
+    if salesforce_calls >= 24000
+      raise SalesforceApiService::RateLimitError, 'Daily API limit reached'
+    end
+    
+    # Check Highspot rate limit
+    highspot_calls = Rails.cache.increment('highspot_api_calls_minute', 1, expires_in: 1.minute)
+    if highspot_calls > 1000
+      raise HighspotApiService::RateLimitError, 'Per-minute rate limit exceeded'
+    end
+  end
+end
+
+# Batch sync job for processing multiple engagements
+class BatchSyncEngagementsJob < ApplicationJob
+  queue_as :salesforce_sync
+  
+  def perform(highspot_engagement_ids)
+    highspot_engagement_ids.each do |engagement_id|
+      SyncEngagementJob.perform_later(engagement_id)
+    end
+  end
+end
+```
+
+**5. Webhook Handling for Real-time Updates**
+
+```ruby
+# Webhook controller for Highspot events
+class HighspotWebhooksController < ApplicationController
+  skip_before_action :verify_authenticity_token
+  before_action :verify_webhook_signature
+  
+  def engagement_created
+    engagement_data = JSON.parse(request.body.read)
+    
+    # Queue background job for async processing
+    SyncEngagementJob.perform_later(engagement_data['id'])
+    
+    head :ok
+  rescue => e
+    Rails.logger.error "Webhook processing failed: #{e.message}"
+    head :unprocessable_entity
+  end
+  
+  private
+  
+  def verify_webhook_signature
+    signature = request.headers['X-Highspot-Signature']
+    expected_signature = calculate_signature(request.body.read)
+    
+    unless ActiveSupport::SecurityUtils.secure_compare(signature, expected_signature)
+      head :unauthorized
+    end
+  end
+  
+  def calculate_signature(payload)
+    OpenSSL::HMAC.hexdigest(
+      'sha256',
+      ENV['HIGHSPOT_WEBHOOK_SECRET'],
+      payload
+    )
+  end
+end
+
+# Routes
+# config/routes.rb
+namespace :webhooks do
+  post 'highspot/engagement_created', to: 'highspot_webhooks#engagement_created'
+end
+```
+
+**6. Scheduled Batch Sync for Historical Data**
+
+```ruby
+# Scheduled job for batch syncing
+class ScheduledBatchSyncJob < ApplicationJob
+  queue_as :scheduled
+  
+  def perform
+    # Fetch engagements from Highspot created in last hour
+    highspot_api = HighspotApiService.new(HighspotToken.current.access_token)
+    
+    since = 1.hour.ago.iso8601
+    page = 1
+    
+    loop do
+      engagements = highspot_api.get_engagements(since: since, page: page)
+      break if engagements['data'].empty?
+      
+      # Queue sync jobs in batches
+      engagement_ids = engagements['data'].map { |e| e['id'] }
+      BatchSyncEngagementsJob.perform_later(engagement_ids)
+      
+      break unless engagements['has_more']
+      page += 1
+    end
+  end
+end
+
+# Schedule in config/schedule.rb (whenever gem)
+every 1.hour do
+  runner 'ScheduledBatchSyncJob.perform_later'
+end
+```
+
+**7. Error Handling & Monitoring**
+
+```ruby
+# Error handling service
+class SyncErrorHandler
+  def self.handle(error, context = {})
+    case error
+    when SalesforceApiService::RateLimitError
+      # Exponential backoff and retry
+      retry_after = calculate_retry_after(error)
+      SyncEngagementJob.set(wait: retry_after).perform_later(context[:engagement_id])
+      
+    when HighspotApiService::AuthenticationError
+      # Refresh token and retry
+      HighspotTokenService.refresh_token
+      SyncEngagementJob.perform_later(context[:engagement_id])
+      
+    when Faraday::TimeoutError
+      # Retry with longer timeout
+      SyncEngagementJob.set(wait: 30.seconds).perform_later(context[:engagement_id])
+      
+    else
+      # Log to error tracking service (Sentry, etc.)
+      Sentry.capture_exception(error, extra: context)
+      
+      # Create failed sync record
+      SyncLog.create!(
+        highspot_engagement_id: context[:engagement_id],
+        status: 'failed',
+        error_message: error.message,
+        error_class: error.class.name
+      )
+    end
+  end
+  
+  private
+  
+  def self.calculate_retry_after(error)
+    # Parse Retry-After header or use exponential backoff
+    retry_after = error.response&.headers&.[]('Retry-After')
+    retry_after ? retry_after.to_i.seconds : 1.hour
+  end
+end
+```
+
+**8. API Rate Limiting & Throttling**
+
+```ruby
+# Rate limiter for API calls
+class ApiRateLimiter
+  def self.check_and_increment(service, limit_key)
+    key = "api_rate_limit:#{service}:#{limit_key}"
+    current = Rails.cache.read(key) || 0
+    
+    if current >= get_limit(service, limit_key)
+      raise RateLimitExceededError, "#{service} rate limit exceeded"
+    end
+    
+    Rails.cache.increment(key, 1, expires_in: get_window(service, limit_key))
+  end
+  
+  private
+  
+  def self.get_limit(service, limit_key)
+    case service
+    when 'salesforce'
+      limit_key == 'daily' ? 24000 : 1000
+    when 'highspot'
+      limit_key == 'minute' ? 1000 : 10000
+    end
+  end
+  
+  def self.get_window(service, limit_key)
+    case service
+    when 'salesforce'
+      limit_key == 'daily' ? 24.hours : 1.hour
+    when 'highspot'
+      limit_key == 'minute' ? 1.minute : 1.hour
+    end
+  end
+end
+```
+
+**9. Data Consistency & Conflict Resolution**
+
+```ruby
+# Conflict resolution service
+class ConflictResolutionService
+  def self.resolve(highspot_data, salesforce_data)
+    # Last-write-wins strategy with timestamp comparison
+    highspot_updated = DateTime.parse(highspot_data['updated_at'])
+    salesforce_updated = DateTime.parse(salesforce_data['LastModifiedDate'])
+    
+    if highspot_updated > salesforce_updated
+      # Highspot is newer, update Salesforce
+      :update_salesforce
+    elsif salesforce_updated > highspot_updated
+      # Salesforce is newer, update Highspot (if bidirectional sync needed)
+      :update_highspot
+    else
+      # Same timestamp, check data hash
+      :no_conflict
+    end
+  end
+end
+```
+
+**10. Monitoring & Observability**
+
+```ruby
+# Sync monitoring service
+class SyncMonitoringService
+  def self.track_metrics
+    {
+      total_synced: SyncLog.where(status: 'success').count,
+      total_failed: SyncLog.where(status: 'failed').count,
+      avg_sync_time: calculate_avg_sync_time,
+      api_calls_today: {
+        salesforce: Rails.cache.read('salesforce_api_calls_today') || 0,
+        highspot: Rails.cache.read('highspot_api_calls_today') || 0
+      },
+      rate_limit_hits: SyncLog.where("error_message LIKE ?", "%rate limit%").count
+    }
+  end
+  
+  private
+  
+  def self.calculate_avg_sync_time
+    successful_logs = SyncLog.where(status: 'success')
+    return 0 if successful_logs.empty?
+    
+    total_time = successful_logs.sum { |log| log.sync_duration || 0 }
+    total_time / successful_logs.count
+  end
+end
+```
+
+**Key Takeaways for Interview:**
+
+1. **RESTful API Design**: Proper use of HTTP methods, status codes, and resource naming
+2. **External API Integration**: Handling authentication, rate limits, and errors
+3. **Data Transformation**: Mapping between different system data models
+4. **Background Processing**: Async job processing for scalability
+5. **Webhook Handling**: Real-time event processing
+6. **Error Handling**: Comprehensive error handling and retry logic
+7. **Rate Limiting**: Managing API quotas and throttling
+8. **Monitoring**: Tracking sync status and performance metrics
+9. **Idempotency**: Ensuring operations can be safely retried
+10. **Scalability**: Handling large volumes of data with batch processing
+
+### <a id="authentication-authorization-in-rails"></a>**Authentication & Authorization in Rails (CSRF, JWT, Devise)**
+
+**Question**: How do authentication and authorization work in Ruby on Rails? Explain CSRF tokens, JWT tokens, and how Devise integrates with them.
+
+**Answer**:
+
+**1. Authentication vs Authorization**
+
+**Authentication** = "Who are you?" - Verifies user identity
+- Login credentials (email/password)
+- Token validation
+- Session management
+
+**Authorization** = "What can you do?" - Determines user permissions
+- Role-based access control
+- Resource permissions
+- Action-level restrictions
+
+**2. CSRF (Cross-Site Request Forgery) Protection**
+
+**What is CSRF?**
+CSRF attacks trick authenticated users into executing unwanted actions on a web application where they're logged in.
+
+**How Rails Protects Against CSRF:**
+
+```ruby
+# Rails automatically includes CSRF protection
+# config/application.rb
+config.action_controller.default_protect_from_forgery = true
+
+# ApplicationController automatically includes:
+class ApplicationController < ActionController::Base
+  protect_from_forgery with: :exception  # Raises exception on invalid token
+  # or
+  protect_from_forgery with: :null_session  # Clears session on invalid token
+end
+```
+
+**How CSRF Tokens Work:**
+
+1. **Token Generation**: Rails generates a unique token per session
+2. **Token Storage**: Stored in session and as meta tag in HTML
+3. **Token Validation**: Rails validates token on POST/PUT/DELETE requests
+4. **Token Matching**: Token in form must match token in session
+
+```ruby
+# In forms (automatic with form_with/form_for)
+<%= form_with model: @user do |f| %>
+  <%= f.text_field :name %>
+  <%= f.submit %>
+<% end %>
+# Rails automatically includes: <input type="hidden" name="authenticity_token" value="...">
+
+# In AJAX requests
+fetch('/users', {
+  method: 'POST',
+  headers: {
+    'X-CSRF-Token': document.querySelector('meta[name="csrf-token"]').content,
+    'Content-Type': 'application/json'
+  },
+  body: JSON.stringify({ user: { name: 'John' } })
+});
+
+# Meta tag in layout (automatic)
+<%= csrf_meta_tags %>
+# Generates: <meta name="csrf-token" content="...">
+```
+
+**When to Skip CSRF:**
+
+```ruby
+# For API endpoints (use JWT instead)
+class Api::BaseController < ApplicationController
+  skip_before_action :verify_authenticity_token  # Skip CSRF for APIs
+  before_action :authenticate_with_jwt  # Use JWT instead
+end
+```
+
+**3. JWT (JSON Web Tokens)**
+
+**What is JWT?**
+JWT is a stateless authentication mechanism for APIs. Token contains user information and is signed to prevent tampering.
+
+**JWT Structure:**
+```
+header.payload.signature
+```
+
+**JWT Implementation in Rails:**
+
+```ruby
+# Gemfile
+gem 'jwt'
+
+# JWT Service
+class JwtService
+  SECRET_KEY = Rails.application.credentials.secret_key_base
+  
+  def self.encode(payload, exp = 24.hours.from_now)
+    payload[:exp] = exp.to_i
+    JWT.encode(payload, SECRET_KEY, 'HS256')
+  end
+  
+  def self.decode(token)
+    decoded = JWT.decode(token, SECRET_KEY, true, { algorithm: 'HS256' })[0]
+    HashWithIndifferentAccess.new(decoded)
+  rescue JWT::DecodeError => e
+    nil
+  end
+end
+
+# Usage in Authentication
+class Api::AuthController < ApplicationController
+  skip_before_action :verify_authenticity_token
+  
+  def login
+    user = User.find_by(email: params[:email])
+    
+    if user&.authenticate(params[:password])
+      token = JwtService.encode({ user_id: user.id, email: user.email })
+      render json: { token: token, user: user }
+    else
+      render json: { error: 'Invalid credentials' }, status: :unauthorized
+    end
+  end
+end
+
+# JWT Authentication Middleware
+class JwtAuthentication
+  def initialize(app)
+    @app = app
+  end
+  
+  def call(env)
+    request = ActionDispatch::Request.new(env)
+    token = extract_token(request)
+    
+    if token
+      payload = JwtService.decode(token)
+      env['current_user_id'] = payload[:user_id] if payload
+    end
+    
+    @app.call(env)
+  end
+  
+  private
+  
+  def extract_token(request)
+    request.headers['Authorization']&.split(' ')&.last
+  end
+end
+
+# Controller usage
+class Api::BaseController < ApplicationController
+  skip_before_action :verify_authenticity_token
+  before_action :authenticate_with_jwt
+  
+  private
+  
+  def authenticate_with_jwt
+    token = request.headers['Authorization']&.split(' ')&.last
+    payload = JwtService.decode(token)
+    
+    if payload && payload[:user_id]
+      @current_user = User.find(payload[:user_id])
+    else
+      render json: { error: 'Unauthorized' }, status: :unauthorized
+    end
+  end
+end
+```
+
+**JWT vs Session-Based Auth:**
+
+| Feature | JWT | Sessions |
+|---------|-----|----------|
+| **State** | Stateless | Stateful (server stores session) |
+| **Storage** | Client-side | Server-side |
+| **Scalability** | Better (no server storage) | Requires shared session store |
+| **Use Case** | APIs, microservices | Web applications |
+| **CSRF Protection** | Not needed | Required |
+
+**4. Devise Gem**
+
+**What is Devise?**
+Devise is a flexible authentication solution for Rails with built-in modules for common authentication features.
+
+**Devise Setup:**
+
+```ruby
+# Gemfile
+gem 'devise'
+
+# Installation
+rails generate devise:install
+rails generate devise User
+rails db:migrate
+
+# Configuration (config/initializers/devise.rb)
+Devise.setup do |config|
+  config.mailer_sender = 'noreply@example.com'
+  config.secret_key = Rails.application.credentials.secret_key_base
+  config.authentication_keys = [:email]
+  config.password_length = 6..128
+end
+```
+
+**Devise Modules:**
+
+```ruby
+class User < ApplicationRecord
+  devise :database_authenticatable,  # Password hashing, login
+         :registerable,               # User registration
+         :recoverable,                # Password reset
+         :rememberable,               # "Remember me" functionality
+         :validatable,                # Email/password validation
+         :trackable,                  # Login tracking
+         :confirmable,                # Email confirmation
+         :lockable                    # Account locking after failed attempts
+end
+```
+
+**Devise Controllers & Routes:**
+
+```ruby
+# Routes (automatic with devise_for)
+devise_for :users
+# Generates:
+# POST   /users/sign_in
+# DELETE /users/sign_out
+# POST   /users
+# GET    /users/sign_up
+# GET    /users/password/new
+# etc.
+
+# Custom controllers
+class Users::RegistrationsController < Devise::RegistrationsController
+  def create
+    super do |resource|
+      if resource.persisted?
+        # Custom logic after signup
+        UserMailer.welcome_email(resource).deliver_later
+      end
+    end
+  end
+end
+
+# Routes
+devise_for :users, controllers: {
+  registrations: 'users/registrations'
+}
+```
+
+**Devise with CSRF:**
+
+```ruby
+# Devise forms automatically include CSRF tokens
+# app/views/devise/sessions/new.html.erb
+<%= form_for(resource, as: resource_name, url: session_path(resource_name)) do |f| %>
+  <%= f.email_field :email %>
+  <%= f.password_field :password %>
+  <%= f.submit "Log in" %>
+<% end %>
+# CSRF token automatically included
+```
+
+**5. Integration: CSRF + JWT + Devise**
+
+**Scenario 1: Web Application (Devise + CSRF)**
+
+```ruby
+# Web controllers use Devise + CSRF
+class Web::PostsController < ApplicationController
+  before_action :authenticate_user!  # Devise authentication
+  # CSRF protection automatically enabled
+  
+  def create
+    @post = current_user.posts.create(post_params)
+    # CSRF token validated automatically
+  end
+end
+```
+
+**Scenario 2: API Application (JWT Only)**
+
+```ruby
+# API controllers use JWT, skip CSRF
+class Api::PostsController < ApplicationController
+  skip_before_action :verify_authenticity_token
+  before_action :authenticate_with_jwt
+  
+  def create
+    @post = @current_user.posts.create(post_params)
+    render json: @post
+  end
+end
+```
+
+**Scenario 3: Hybrid Application (Devise for Web, JWT for API)**
+
+```ruby
+# ApplicationController
+class ApplicationController < ActionController::Base
+  protect_from_forgery with: :exception
+  
+  # Detect if API request
+  def api_request?
+    request.path.start_with?('/api/')
+  end
+end
+
+# Base API Controller
+class Api::BaseController < ApplicationController
+  skip_before_action :verify_authenticity_token
+  before_action :authenticate_with_jwt
+end
+
+# Web Controller
+class Web::BaseController < ApplicationController
+  before_action :authenticate_user!  # Devise
+  # CSRF automatically enabled
+end
+```
+
+**Devise + JWT for API:**
+
+```ruby
+# Generate JWT token after Devise login
+class Users::SessionsController < Devise::SessionsController
+  def create
+    self.resource = warden.authenticate!(auth_options)
+    set_flash_message!(:notice, :signed_in)
+    sign_in(resource_name, resource)
+    
+    # Generate JWT token for API access
+    token = JwtService.encode({ user_id: resource.id })
+    
+    respond_with resource, location: after_sign_in_path_for(resource) do |format|
+      format.json { render json: { token: token, user: resource } }
+      format.html { redirect_to after_sign_in_path_for(resource) }
+    end
+  end
+end
+```
+
+**6. Authorization with Pundit**
+
+**What is Authorization?**
+Authorization determines what authenticated users can do (permissions, roles).
+
+**Pundit Integration:**
+
+```ruby
+# Gemfile
+gem 'pundit'
+
+# Generate policies
+rails generate pundit:install
+
+# Policy class
+class PostPolicy < ApplicationPolicy
+  def show?
+    true  # Anyone can view
+  end
+  
+  def create?
+    user.present?  # Must be logged in
+  end
+  
+  def update?
+    user == record.user || user.admin?  # Owner or admin
+  end
+  
+  def destroy?
+    user.admin?  # Only admins
+  end
+end
+
+# Controller usage
+class PostsController < ApplicationController
+  before_action :authenticate_user!  # Devise
+  before_action :set_post, only: [:show, :edit, :update, :destroy]
+  
+  def update
+    authorize @post  # Pundit authorization
+    @post.update(post_params)
+  end
+  
+  private
+  
+  def set_post
+    @post = Post.find(params[:id])
+  end
+end
+```
+
+**7. Security Best Practices**
+
+**Password Security:**
+```ruby
+# Devise uses bcrypt automatically
+# config/initializers/devise.rb
+config.stretches = 12  # Password hashing rounds
+```
+
+**Token Security:**
+```ruby
+# JWT expiration
+JwtService.encode({ user_id: user.id }, 1.hour.from_now)
+
+# Secure token storage
+# Store JWT in httpOnly cookies for web apps
+# Store JWT in localStorage for SPAs (less secure but common)
+```
+
+**HTTPS Enforcement:**
+```ruby
+# config/environments/production.rb
+config.force_ssl = true
+```
+
+**Session Security:**
+```ruby
+# config/initializers/session_store.rb
+Rails.application.config.session_store :cookie_store,
+  key: '_myapp_session',
+  secure: Rails.env.production?,  # HTTPS only in production
+  httponly: true,                   # Prevent JavaScript access
+  same_site: :lax                   # CSRF protection
+```
+
+**8. Common Interview Questions**
+
+**Q: What's the difference between authentication and authorization?**
+- **Authentication**: Verifies identity (login)
+- **Authorization**: Determines permissions (what you can do)
+
+**Q: When should you use JWT vs sessions?**
+- **JWT**: APIs, stateless apps, microservices
+- **Sessions**: Web apps, when you need server-side control
+
+**Q: How does CSRF protection work?**
+- Rails generates unique token per session
+- Token included in forms and validated on POST/PUT/DELETE
+- Prevents unauthorized requests from other sites
+
+**Q: Can you use Devise with JWT?**
+- Yes, generate JWT token after Devise authentication
+- Use Devise for web login, JWT for API access
+
+**Q: How do you handle token expiration?**
+- Set expiration in JWT payload
+- Implement refresh token mechanism
+- Check expiration on each request
+
+**Summary:**
+
+- **CSRF**: Protects web forms from cross-site attacks (automatic in Rails)
+- **JWT**: Stateless authentication for APIs (no server-side storage)
+- **Devise**: Complete authentication solution with multiple modules
+- **Pundit**: Authorization framework for permission management
+- **Web Apps**: Use Devise + CSRF
+- **APIs**: Use JWT (skip CSRF)
+- **Hybrid**: Devise for web, JWT for API
 
 ---
