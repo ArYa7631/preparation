@@ -13,6 +13,7 @@
 - [API Rate Limiting](#api-rate-limiting)
 - [Background Job Processing](#background-job-processing)
 - [Security Best Practices](#security-best-practices)
+- [Handling Bugs in Production](#handling-bugs-in-production)
 - [Highspot-Salesforce RESTful API Integration](#highspot-salesforce-restful-api-integration)
 - [Authentication & Authorization in Rails (CSRF, JWT, Devise)](#authentication-authorization-in-rails)
 
@@ -720,6 +721,363 @@ end
 - **Security event** logging
 - **Intrusion detection** systems
 - **Regular security** audits
+
+### <a id="handling-bugs-in-production"></a>**Handling Bugs in Production**
+
+**Question**: How do you handle a bug in production? Walk me through your process for debugging, fixing, and deploying a fix in a Ruby on Rails application.
+
+**Answer**:
+
+When a bug is discovered in production, I follow a systematic approach to minimize impact, identify the root cause, and deploy a fix safely.
+
+**1. Immediate Assessment & Response**
+
+**Assess the Severity:**
+- **Critical**: Data loss, security breach, complete service outage → Immediate action
+- **High**: Major feature broken, performance degradation → Priority fix
+- **Medium**: Minor feature issue, workaround available → Scheduled fix
+- **Low**: Cosmetic issue, edge case → Backlog
+
+**Quick Response Steps:**
+```ruby
+# 1. Check error monitoring (Sentry, Bugsnag, Rollbar)
+# 2. Review application logs
+# 3. Check database for data corruption
+# 4. Assess user impact
+
+# Production console access (use with extreme caution)
+# RAILS_ENV=production rails console
+
+# Check recent errors in logs
+tail -f log/production.log | grep ERROR
+tail -f log/production.log | grep FATAL
+```
+
+**2. Immediate Mitigation**
+
+**Option 1: Rollback (if recent deployment)**
+```bash
+# Capistrano rollback
+cap production deploy:rollback
+
+# Or manual rollback
+git revert <commit-hash>
+git push origin main
+# Trigger deployment pipeline
+
+# Database rollback if needed
+RAILS_ENV=production rails db:rollback STEP=1
+```
+
+**Option 2: Feature Flag (if available)**
+```ruby
+# Turn off feature flag to disable problematic code
+# config/feature_flags.rb
+FEATURE_FLAGS = {
+  new_checkout_flow: false,  # Disable problematic feature
+  new_payment_method: true
+}
+
+# In code
+if FEATURE_FLAGS[:new_checkout_flow]
+  # New code path
+else
+  # Old stable code path
+end
+```
+
+**Option 3: Database Hotfix (if data issue)**
+```ruby
+# Emergency database fix via console
+# RAILS_ENV=production rails console
+
+# Example: Fix corrupted records
+User.where(status: nil).update_all(status: 'active')
+Order.where(total: nil).destroy_all  # If safe to remove
+
+# Always backup first!
+```
+
+**3. Investigation & Root Cause Analysis**
+
+**Check Error Tracking:**
+```ruby
+# Sentry/Bugsnag provides:
+# - Stack trace
+# - Request parameters
+# - User context
+# - Environment info
+# - Frequency of occurrence
+```
+
+**Review Application Logs:**
+```ruby
+# config/environments/production.rb
+config.log_level = :info  # or :warn for less verbose
+
+# Structured logging helps
+Rails.logger.info({
+  event: 'user_login',
+  user_id: user.id,
+  ip_address: request.remote_ip,
+  timestamp: Time.current
+}.to_json)
+
+# Search logs for patterns
+grep "undefined method" log/production.log
+grep "ActiveRecord::RecordNotFound" log/production.log
+```
+
+**Reproduce Locally:**
+```ruby
+# 1. Check recent commits
+git log --oneline -10
+
+# 2. Reproduce in staging environment
+RAILS_ENV=staging rails console
+
+# 3. Write a test case that reproduces the bug
+# spec/models/user_spec.rb
+describe User do
+  it "handles edge case that caused production bug" do
+    user = User.new(email: nil)
+    expect { user.save! }.to raise_error(ActiveRecord::RecordInvalid)
+  end
+end
+```
+
+**Database Investigation:**
+```ruby
+# Check for data inconsistencies
+# RAILS_ENV=production rails console
+
+# Example queries
+User.where("created_at > ?", 1.day.ago).count
+Order.where(status: 'pending').where("created_at < ?", 1.hour.ago).count
+
+# Check slow queries
+# Enable query logging temporarily
+ActiveRecord::Base.logger = Logger.new(STDOUT)
+User.includes(:orders).where(status: 'active').limit(10).each { |u| u.orders.count }
+```
+
+**4. Fix Development**
+
+**Write the Fix:**
+```ruby
+# Example: Fix N+1 query issue
+# Before (problematic)
+class UsersController < ApplicationController
+  def index
+    @users = User.where(status: 'active')
+    # N+1 query in view
+  end
+end
+
+# After (fixed)
+class UsersController < ApplicationController
+  def index
+    @users = User.includes(:profile, :orders)
+                  .where(status: 'active')
+                  .order(created_at: :desc)
+  end
+end
+```
+
+**Add Tests:**
+```ruby
+# spec/controllers/users_controller_spec.rb
+describe UsersController do
+  describe 'GET #index' do
+    it 'eager loads associations to avoid N+1 queries' do
+      user = create(:user, :with_profile, :with_orders)
+      
+      expect {
+        get :index
+      }.to make_database_queries(count: 3)  # Not N+1
+    end
+  end
+end
+```
+
+**5. Testing the Fix**
+
+**Local Testing:**
+```bash
+# Run test suite
+rails test
+# or
+rspec
+
+# Test specific scenario
+rails test test/models/user_test.rb
+```
+
+**Staging Environment:**
+```bash
+# Deploy to staging first
+git push origin staging
+# Or merge to staging branch and deploy
+
+# Verify fix in staging
+# - Test the exact scenario that failed
+# - Run smoke tests
+# - Check logs for errors
+```
+
+**6. Safe Deployment**
+
+**Deployment Checklist:**
+- [ ] Fix tested locally and in staging
+- [ ] Code review approved
+- [ ] Database migrations tested (if applicable)
+- [ ] Rollback plan ready
+- [ ] Team notified
+- [ ] Monitoring alerts configured
+
+**Deployment Process:**
+```bash
+# Create fix branch
+git checkout -b fix/production-bug-description
+# Make changes and commit
+git commit -m "Fix: Description of the fix
+
+- Root cause: Brief explanation
+- Solution: What was fixed
+- Tests: Added test cases
+
+Fixes #issue-number"
+
+# Merge to main
+git checkout main
+git merge fix/production-bug-description
+
+# Deploy (Capistrano example)
+cap production deploy
+
+# Or with Docker/Kubernetes
+kubectl apply -f k8s/deployment.yaml
+```
+
+**Database Migrations (if needed):**
+```ruby
+# Always test migrations on staging first!
+# db/migrate/YYYYMMDDHHMMSS_fix_data_issue.rb
+class FixDataIssue < ActiveRecord::Migration[7.0]
+  def up
+    # Safe migration
+    User.where(status: nil).find_each do |user|
+      user.update_column(:status, 'active')
+    end
+    
+    # Add index if needed
+    add_index :users, :status, if_not_exists: true
+  end
+  
+  def down
+    remove_index :users, :status, if_exists: true
+  end
+end
+```
+
+**7. Post-Deployment Monitoring**
+
+**Verify Fix:**
+```ruby
+# Monitor error rates
+# Check Sentry/Bugsnag for new errors
+# Review application logs
+tail -f log/production.log
+
+# Verify feature works
+# - Test in production (carefully)
+# - Check user reports
+# - Monitor metrics (response times, error rates)
+```
+
+**Monitoring Setup:**
+```ruby
+# config/initializers/exception_notification.rb
+if Rails.env.production?
+  Rails.application.config.middleware.use ExceptionNotification::Rack,
+    email: {
+      email_prefix: "[Production Error] ",
+      sender_address: %{"notifier" <notifier@example.com>},
+      exception_recipients: %w{dev-team@example.com}
+    }
+end
+
+# Application-level monitoring
+# config/application.rb
+config.log_tags = [:request_id, :remote_ip]
+```
+
+**8. Documentation & Prevention**
+
+**Post-Mortem Documentation:**
+```markdown
+# Bug Report Template
+## Issue
+- Description: What happened
+- Impact: Number of users affected, severity
+- Timeline: When discovered, when fixed
+
+## Root Cause
+- Technical cause
+- Why it wasn't caught earlier
+
+## Fix
+- Code changes
+- Deployment steps
+
+## Prevention
+- Test cases added
+- Monitoring improvements
+- Process changes
+```
+
+**Preventive Measures:**
+```ruby
+# 1. Add monitoring
+gem 'sentry-ruby'
+gem 'newrelic_rpm'
+
+# 2. Better error handling
+class ApplicationController < ActionController::Base
+  rescue_from ActiveRecord::RecordNotFound, with: :handle_not_found
+  rescue_from StandardError, with: :handle_error
+  
+  private
+  
+  def handle_error(exception)
+    Rails.logger.error exception
+    Sentry.capture_exception(exception)
+    render json: { error: 'Internal server error' }, status: 500
+  end
+end
+
+# 3. Feature flags for safe rollouts
+gem 'flipper'
+
+# 4. Comprehensive testing
+# - Unit tests
+# - Integration tests
+# - End-to-end tests
+# - Performance tests
+```
+
+**Best Practices Summary:**
+
+1. **Always have a rollback plan** before deploying
+2. **Test in staging** that mirrors production
+3. **Monitor continuously** - catch issues before users do
+4. **Use feature flags** for gradual rollouts
+5. **Log comprehensively** - structured logging helps debugging
+6. **Document everything** - helps future debugging
+7. **Review recent changes** - most bugs come from recent deployments
+8. **Communicate clearly** - keep team and stakeholders informed
+9. **Learn from incidents** - conduct post-mortems
+10. **Invest in tooling** - error tracking, monitoring, logging
 
 ### <a id="highspot-salesforce-restful-api-integration"></a>**Highspot-Salesforce RESTful API Integration**
 
