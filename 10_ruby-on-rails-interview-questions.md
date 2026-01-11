@@ -20,6 +20,7 @@
 ### Advanced Topics
 - [What are Rails concerns?](#what-are-rails-concerns)
 - [How does caching work in Ruby on Rails?](#how-does-caching-work-in-ruby-on-rails)
+- [What are the design patterns in Ruby on Rails?](#what-are-the-design-patterns-in-ruby-on-rails)
 
 ### Database & Performance
 - [What is the N+1 query problem?](#what-is-the-n1-query-problem)
@@ -1375,6 +1376,24 @@ end
 - **Performance trade-offs**: Memory usage vs speed improvements
 - **Security considerations**: What should and shouldn't be cached
 - **Choose appropriate strategies**: Fragment, Action, Model, or Low-level caching based on use case
+
+
+### <a id="what-are-the-design-patterns-in-ruby-on-rails"></a>**What are the design patterns in Ruby on Rails?**
+
+Ruby on Rails applications commonly use several design patterns to organize code and maintain separation of concerns:
+
+**Common Rails Design Patterns:**
+- **MVC (Model-View-Controller)**: Core architectural pattern
+- **Service Objects**: Encapsulate business logic
+- **Form Objects**: Handle complex form validations
+- **Query Objects**: Encapsulate complex database queries
+- **Policy Objects**: Handle authorization logic
+- **Decorator Pattern**: Add presentation logic without modifying models
+- **Observer Pattern**: Respond to model lifecycle events
+- **Active Record Pattern**: ORM for database interactions
+- **Repository Pattern**: Abstract data access layer
+
+For detailed explanations and code examples of these patterns, see [Advanced Rails Questions - Rails Application Architecture Patterns](ruby-on-rails-advanced-interview-questions.md#explain-rails-application-architecture-patterns).
 
 
 ## Database & Performance

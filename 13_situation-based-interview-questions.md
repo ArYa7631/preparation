@@ -14,6 +14,7 @@
 - [Background Job Processing](#background-job-processing)
 - [Security Best Practices](#security-best-practices)
 - [Handling Bugs in Production](#handling-bugs-in-production)
+- [Development Workflow: From Ticket to PR to Deployment](#development-workflow-from-ticket-to-pr-to-deployment)
 - [Highspot-Salesforce RESTful API Integration](#highspot-salesforce-restful-api-integration)
 - [Authentication & Authorization in Rails (CSRF, JWT, Devise)](#authentication-authorization-in-rails)
 
@@ -828,6 +829,50 @@ grep "undefined method" log/production.log
 grep "ActiveRecord::RecordNotFound" log/production.log
 ```
 
+**Remote Debugging with pry-remote:**
+```ruby
+# pry-remote allows safe debugging in production
+# Install the gem (add to Gemfile)
+# gem 'pry-remote'
+
+# Usage: Add binding.remote_pry in your code
+class UsersController < ApplicationController
+  def show
+    @user = User.find(params[:id])
+    binding.remote_pry  # Will wait for remote connection
+    # Rest of your code
+  end
+end
+
+# To connect to the remote pry session from your local machine:
+# In terminal: pry-remote
+
+# Or specify host/port:
+# PRY_REMOTE_HOST=production-server.com PRY_REMOTE_PORT=9876 pry-remote
+
+# Configuration (config/environments/production.rb)
+# Set port for remote debugging (default is 9876)
+# ENV['PRY_REMOTE_PORT'] = '9876'
+
+# Security considerations:
+# - Only use on trusted networks
+# - Restrict access via firewall/security groups
+# - Remove binding.remote_pry after debugging
+# - Consider using environment variables to disable in production
+# - Never leave remote debugging enabled in public-facing code
+
+# Alternative: Use only in development/staging
+if Rails.env.development? || Rails.env.staging?
+  binding.remote_pry
+end
+
+# Best practices:
+# 1. Always remove binding.remote_pry after debugging
+# 2. Use feature flags or environment checks
+# 3. Monitor for security risks
+# 4. Use only when necessary (not for routine debugging)
+```
+
 **Reproduce Locally:**
 ```ruby
 # 1. Check recent commits
@@ -1078,6 +1123,412 @@ gem 'flipper'
 8. **Communicate clearly** - keep team and stakeholders informed
 9. **Learn from incidents** - conduct post-mortems
 10. **Invest in tooling** - error tracking, monitoring, logging
+
+### <a id="development-workflow-from-ticket-to-pr-to-deployment"></a>**Development Workflow: From Ticket to PR to Deployment**
+
+**Question**: What is the procedure you follow in your project from receiving a ticket to serving (deploying) and raising the PR in a product-based project?
+
+**Answer**:
+
+In a product-based company, following a structured development workflow ensures code quality, collaboration, and smooth deployments. Here's a typical procedure:
+
+**1. Ticket Receipt & Analysis**
+
+**Understanding the Requirement:**
+- Read the ticket description thoroughly (Jira, GitHub Issues, Linear, etc.)
+- Review acceptance criteria and user stories
+- Identify dependencies and related tickets
+- Clarify ambiguities with product manager/designer
+- Estimate complexity and effort
+
+**Example:**
+```
+Ticket: #1234 - Add user profile image upload feature
+Description: Users should be able to upload profile images
+Acceptance Criteria:
+- User can upload image (max 5MB)
+- Image is resized to 200x200px
+- Supports JPG, PNG formats
+- Shows preview before upload
+```
+
+**2. Branch Creation & Setup**
+
+**Create Feature Branch:**
+```bash
+# Pull latest changes from main
+git checkout main
+git pull origin main
+
+# Create feature branch with descriptive name
+git checkout -b feature/user-profile-image-upload
+# or
+git checkout -b fix/issue-1234-profile-upload
+# or
+git checkout -b chore/update-gem-versions
+```
+
+**Branch Naming Conventions:**
+- `feature/description` - New features
+- `fix/description` - Bug fixes
+- `chore/description` - Maintenance tasks
+- `refactor/description` - Code refactoring
+- `docs/description` - Documentation updates
+
+**3. Development**
+
+**Local Development:**
+```bash
+# Install dependencies
+bundle install
+yarn install  # if using JavaScript
+
+# Run database migrations
+rails db:migrate
+
+# Start development server
+rails server
+
+# Run tests before starting
+rails test
+# or
+rspec
+```
+
+**Development Best Practices:**
+- Write code following project conventions
+- Write tests as you develop (TDD/BDD if applicable)
+- Commit frequently with meaningful messages
+- Keep commits atomic (one logical change per commit)
+- Test locally before committing
+
+**4. Code Implementation**
+
+**Follow Rails Conventions:**
+```ruby
+# Example: Implementing profile image upload
+# app/models/user.rb
+class User < ApplicationRecord
+  has_one_attached :profile_image
+  
+  validates :profile_image, 
+    content_type: ['image/png', 'image/jpeg'],
+    size: { less_than: 5.megabytes }
+  
+  def profile_image_thumbnail
+    profile_image.variant(resize_to_limit: [200, 200])
+  end
+end
+
+# app/controllers/users_controller.rb
+class UsersController < ApplicationController
+  def update
+    if @user.update(user_params)
+      redirect_to @user, notice: 'Profile updated'
+    else
+      render :edit
+    end
+  end
+  
+  private
+  
+  def user_params
+    params.require(:user).permit(:name, :email, :profile_image)
+  end
+end
+```
+
+**5. Writing Tests**
+
+**Test Coverage:**
+```ruby
+# spec/models/user_spec.rb
+describe User do
+  describe 'profile_image' do
+    it 'validates file size' do
+      user = build(:user)
+      large_file = fixture_file_upload('large_image.jpg', 'image/jpeg')
+      user.profile_image = large_file
+      
+      expect(user).not_to be_valid
+      expect(user.errors[:profile_image]).to include('is too large')
+    end
+    
+    it 'creates thumbnail variant' do
+      user = create(:user, :with_profile_image)
+      expect(user.profile_image_thumbnail).to be_present
+    end
+  end
+end
+
+# spec/controllers/users_controller_spec.rb
+describe UsersController do
+  describe 'PATCH #update' do
+    it 'updates user profile image' do
+      user = create(:user)
+      sign_in user
+      image = fixture_file_upload('test_image.jpg', 'image/jpeg')
+      
+      patch :update, params: { id: user.id, user: { profile_image: image } }
+      
+      expect(user.reload.profile_image).to be_attached
+      expect(response).to redirect_to(user)
+    end
+  end
+end
+```
+
+**6. Local Testing & Verification**
+
+**Run Test Suite:**
+```bash
+# Run all tests
+rails test
+# or
+rspec
+
+# Run specific test file
+rails test test/models/user_test.rb
+
+# Run tests with coverage
+COVERAGE=true rspec
+
+# Check code quality
+rubocop  # if using RuboCop
+brakeman  # security check
+```
+
+**Manual Testing:**
+- Test the feature locally in development
+- Verify edge cases and error handling
+- Check UI/UX matches design requirements
+- Test on different browsers (if applicable)
+- Verify responsive design (if applicable)
+
+**7. Commit & Push**
+
+**Commit Changes:**
+```bash
+# Stage changes
+git add .
+
+# Commit with descriptive message
+git commit -m "feat: Add user profile image upload
+
+- Add ActiveStorage profile_image attachment to User model
+- Implement image upload in users controller
+- Add image validation (size, format)
+- Create thumbnail variant (200x200px)
+- Add tests for image upload functionality
+
+Closes #1234"
+
+# Push to remote
+git push origin feature/user-profile-image-upload
+```
+
+**Commit Message Best Practices:**
+- Use conventional commits format (feat, fix, chore, etc.)
+- Write clear, descriptive messages
+- Reference ticket number
+- Explain what and why, not how
+- Keep first line under 50 characters
+
+**8. Create Pull Request**
+
+**PR Creation Checklist:**
+- [ ] Code follows project style guide
+- [ ] All tests pass
+- [ ] Tests added for new functionality
+- [ ] Documentation updated (if needed)
+- [ ] No merge conflicts with main branch
+- [ ] Code reviewed by self
+- [ ] Ticket number referenced
+
+**PR Description Template:**
+```markdown
+## Description
+Brief description of changes
+
+## Type of Change
+- [ ] Feature
+- [ ] Bug fix
+- [ ] Refactor
+- [ ] Documentation
+
+## Related Ticket
+Closes #1234
+
+## Changes Made
+- Added profile image upload functionality
+- Implemented image validation
+- Added thumbnail generation
+- Wrote comprehensive tests
+
+## Testing
+- [ ] All tests pass
+- [ ] Tested manually in development
+- [ ] Tested edge cases
+- [ ] No breaking changes
+
+## Screenshots (if applicable)
+[Add screenshots for UI changes]
+
+## Checklist
+- [ ] Code follows style guidelines
+- [ ] Self-review completed
+- [ ] Comments added for complex code
+- [ ] Documentation updated
+- [ ] No new warnings generated
+```
+
+**9. Code Review Process**
+
+**Addressing Review Comments:**
+```bash
+# Make changes based on feedback
+# Commit additional changes
+git add .
+git commit -m "refactor: Address code review comments
+
+- Extract image processing to service object
+- Improve error handling
+- Update tests"
+
+# Push updates
+git push origin feature/user-profile-image-upload
+```
+
+**Review Best Practices:**
+- Respond to all comments
+- Ask for clarification if needed
+- Be open to suggestions
+- Update PR description with changes
+- Request re-review after addressing comments
+
+**10. PR Approval & Merge**
+
+**After Approval:**
+```bash
+# Ensure branch is up to date with main
+git checkout main
+git pull origin main
+git checkout feature/user-profile-image-upload
+git rebase main  # or git merge main
+
+# Resolve any conflicts if present
+# Push updated branch
+git push origin feature/user-profile-image-upload --force-with-lease
+```
+
+**Merge Strategies:**
+- **Squash and merge** - Combines all commits into one (common for feature branches)
+- **Merge commit** - Preserves commit history
+- **Rebase and merge** - Linear history
+
+**11. CI/CD Pipeline**
+
+**Automated Checks (usually in CI/CD):**
+- Unit tests
+- Integration tests
+- Code quality checks (RuboCop, ESLint)
+- Security scanning (Brakeman, Bundler-audit)
+- Build verification
+- Deployment to staging environment
+
+**12. Staging Deployment & QA**
+
+**After Merge to Main:**
+```bash
+# Deployment to staging happens automatically (usually via CI/CD)
+# Or manually:
+git checkout staging
+git merge main
+git push origin staging
+
+# Deploy to staging
+cap staging deploy
+# or
+kubectl apply -f k8s/staging/
+```
+
+**QA Testing:**
+- QA team tests the feature in staging
+- Product manager verifies requirements met
+- Stakeholder approval if needed
+- Fix any issues found
+
+**13. Production Deployment**
+
+**Pre-Deployment Checklist:**
+- [ ] All tests passing
+- [ ] QA sign-off received
+- [ ] Product manager approval
+- [ ] Database migrations tested in staging
+- [ ] Rollback plan prepared
+- [ ] Monitoring alerts configured
+- [ ] Team notified
+
+**Deployment:**
+```bash
+# Deployment to production (usually automated)
+# Or manual deployment:
+git checkout production  # or main/master
+git pull origin production
+cap production deploy
+# or
+kubectl apply -f k8s/production/
+
+# Run migrations
+RAILS_ENV=production rails db:migrate
+
+# Restart application
+sudo systemctl restart rails-app
+# or
+kubectl rollout restart deployment/rails-app
+```
+
+**14. Post-Deployment**
+
+**Verification:**
+- Monitor error tracking (Sentry, Bugsnag)
+- Check application logs
+- Verify feature works in production
+- Monitor performance metrics
+- Check for user feedback
+
+**15. Closing the Ticket**
+
+- Update ticket status to "Done"
+- Add deployment notes
+- Update documentation if needed
+- Celebrate success! 🎉
+
+**Summary of Workflow:**
+
+1. **Receive & Analyze Ticket** → Understand requirements
+2. **Create Feature Branch** → Branch off from main
+3. **Develop Feature** → Write code and tests
+4. **Local Testing** → Verify locally
+5. **Commit & Push** → Save changes
+6. **Create Pull Request** → Request code review
+7. **Code Review** → Address feedback
+8. **PR Approval** → Get approvals
+9. **Merge to Main** → Integrate changes
+10. **CI/CD Pipeline** → Automated testing/deployment
+11. **Staging Deployment** → QA testing
+12. **Production Deployment** → Release to users
+13. **Post-Deployment** → Monitor and verify
+14. **Close Ticket** → Mark complete
+
+**Best Practices:**
+- **Small PRs** - Easier to review and merge
+- **Frequent commits** - Better tracking and rollback
+- **Clear communication** - Update ticket and PR regularly
+- **Test coverage** - Write tests for new code
+- **Code review** - Don't skip the review process
+- **Documentation** - Update docs for user-facing changes
+- **Monitor** - Watch production after deployment
 
 ### <a id="highspot-salesforce-restful-api-integration"></a>**Highspot-Salesforce RESTful API Integration**
 
