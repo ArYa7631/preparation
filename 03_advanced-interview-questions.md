@@ -23,7 +23,7 @@
 - [Explain Rails security best practices in detail](#explain-rails-security-best-practices-in-detail)
 - [Explain Rails performance optimization in detail](#explain-rails-performance-optimization-in-detail)
 - [How to scale Rails applications and handle increased traffic?](#how-to-scale-rails-application)
-- [Explain Rails API design patterns](#explain-rails-api-design-patterns)
+
 - [Explain Rails deployment and DevOps](#explain-rails-deployment-and-devops)
 - [Explain Rails testing strategies](#explain-rails-testing-strategies)
 - [Explain Rails monitoring and debugging](#explain-rails-monitoring-and-debugging)
@@ -3623,24 +3623,6 @@ end
 - No caching strategy
 - Synchronous heavy operations
 
-### <a id="explain-rails-api-design-patterns"></a>**Explain Rails API design patterns**
-    ```ruby
-    # API versioning
-    namespace :api do
-      namespace :v1 do
-        resources :users
-      end
-    end
-    
-    # API serialization
-    class UserSerializer < ActiveModel::Serializer
-      attributes :id, :name, :email, :created_at
-      
-      def created_at
-        object.created_at.iso8601
-      end
-    end
-    ```
 
 ### <a id="explain-rails-deployment-and-devops"></a>**Explain Rails deployment and DevOps**
     ```ruby

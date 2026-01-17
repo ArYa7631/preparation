@@ -12,11 +12,12 @@
 - [Caching Implementation](#caching-implementation)
 - [API Rate Limiting](#api-rate-limiting)
 - [Background Job Processing](#background-job-processing)
-- [Security Best Practices](#security-best-practices)
+
 - [Handling Bugs in Production](#handling-bugs-in-production)
 - [Development Workflow: From Ticket to PR to Deployment](#development-workflow-from-ticket-to-pr-to-deployment)
 - [Highspot-Salesforce RESTful API Integration](#highspot-salesforce-restful-api-integration)
 - [Authentication & Authorization in Rails (CSRF, JWT, Devise)](#authentication-authorization-in-rails)
+- [Questions to Ask the Interviewer](#questions-to-ask-the-interviewer)
 
 
 ---
@@ -650,80 +651,9 @@ ScheduledJob.set(wait: 1.day).perform_later
 - **Queue monitoring** and management
 - **Resource allocation** optimization
 
-### <a id="security-best-practices"></a>**Security Best Practices**
 
-**Question**: What security measures would you implement in a Rails application? Explain different security layers and best practices.
 
-**Answer**:
-
-**1. Authentication & Authorization**
-- **Devise** for user authentication
-- **Pundit** for authorization policies
-- **JWT tokens** for API authentication
-
-```ruby
-# Authorization with Pundit
-class PostPolicy < ApplicationPolicy
-  def update?
-    user.admin? || record.user == user
-  end
-  
-  def destroy?
-    user.admin? || record.user == user
-  end
-end
-
-# Controller usage
-class PostsController < ApplicationController
-  def update
-    @post = Post.find(params[:id])
-    authorize @post
-    
-    if @post.update(post_params)
-      redirect_to @post
-    else
-      render :edit
-    end
-  end
-end
-```
-
-**2. Input Validation**
-- **Strong parameters** for mass assignment protection
-- **Input sanitization** for XSS prevention
-- **SQL injection** prevention with ActiveRecord
-
-**3. Data Protection**
-- **Encryption** for sensitive data
-- **HTTPS** enforcement
-- **Secure headers** configuration
-
-```ruby
-# Secure headers
-# config/application.rb
-config.force_ssl = true
-config.ssl_options = { hsts: { subdomains: true, preload: true } }
-
-# Content Security Policy
-Rails.application.config.content_security_policy do |policy|
-  policy.default_src :self, :https
-  policy.font_src    :self, :https, :data
-  policy.img_src     :self, :https, :data
-  policy.script_src  :self, :https
-end
-```
-
-**4. Session Security**
-- **Secure session** configuration
-- **CSRF protection** with tokens
-- **Session timeout** and management
-
-**5. Monitoring & Logging**
-- **Security event** logging
-- **Intrusion detection** systems
-- **Regular security** audits
-
-### <a id="handling-bugs-in-production"></a>**Handling Bugs in Production**
+### <a id="handling-bugs-in-production"></a>**Handling Bugs in Production or Debug in Production**
 
 **Question**: How do you handle a bug in production? Walk me through your process for debugging, fixing, and deploying a fix in a Ruby on Rails application.
 
@@ -2539,5 +2469,40 @@ Rails.application.config.session_store :cookie_store,
 - **Web Apps**: Use Devise + CSRF
 - **APIs**: Use JWT (skip CSRF)
 - **Hybrid**: Devise for web, JWT for API
+
+---
+
+### <a id="questions-to-ask-the-interviewer"></a>**Questions to Ask the Interviewer**
+
+**Question**: When the interviewer asks "Do you have any questions for me?" at the end of a Ruby on Rails interview, what should you ask?
+
+**Answer**:
+
+Asking thoughtful questions at the end of an interview demonstrates your interest, engagement, and professionalism. Here's a comprehensive list of questions organized by category:
+
+---
+
+**Best Questions to Ask (Top 10):**
+
+1. ✅ "What version of Rails are you using, and what's been your experience with it?"
+2. ✅ "What's your testing strategy and approach to code quality?"
+3. ✅ "What are the biggest technical challenges the team is currently facing?"
+4. ✅ "What would my first project look like if I were to join?"
+5. ✅ "How does the team collaborate? What's the code review process?"
+6. ✅ "What's your CI/CD pipeline setup?"
+7. ✅ "How do you support developer growth and learning?"
+8. ✅ "What would success look like for this role in the first 90 days?"
+9. ✅ "Can you walk me through a recent feature you shipped?"
+10. ✅ "What's the next step in the interview process?"
+
+**Key Principles:**
+- ✅ Ask genuine questions you care about
+- ✅ Mix technical and cultural questions
+- ✅ Listen and adapt based on the conversation
+- ✅ Show enthusiasm and engagement
+- ✅ Prepare 5-7 questions but be flexible
+- ✅ Take notes on their answers
+
+**Remember:** Asking thoughtful questions demonstrates that you're not just looking for any job, but specifically interested in *this* role and *this* company. It shows you're engaged, curious, and serious about making the right career decision.
 
 ---

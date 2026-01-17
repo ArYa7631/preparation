@@ -578,6 +578,195 @@ users.each { |user| puts user.orders.count }  # Still N+1!
 
 ---
 
+### <a id="sql-query-execution-order"></a>11.5. **SQL Query Execution Order**
+
+**Question**: Explain the execution order of SQL query clauses. For example, when is WHERE executed - before or after JOIN?
+
+**Answer**:
+
+**SQL Query Execution Order (Logical Processing Order):**
+
+The SQL query execution follows this order (note: this is the **logical processing order**, not necessarily the physical execution order, which the query optimizer may rearrange):
+
+```sql
+1. FROM (including JOINs)
+2. ON (JOIN conditions)
+3. WHERE
+4. GROUP BY
+5. HAVING
+6. SELECT
+7. DISTINCT
+8. ORDER BY
+9. LIMIT/OFFSET (or TOP/FETCH)
+```
+
+**Detailed Explanation:**
+
+**1. FROM and JOINs execute FIRST:**
+```sql
+SELECT users.*, orders.total
+FROM users
+INNER JOIN orders ON users.id = orders.user_id
+WHERE orders.total > 100;
+```
+
+**Execution Flow:**
+- **Step 1**: FROM `users` - Load the users table
+- **Step 2**: JOIN `orders` ON `users.id = orders.user_id` - Join orders table based on the ON condition
+- **Step 3**: WHERE `orders.total > 100` - Filter the joined result set
+
+**Key Point**: **WHERE is executed AFTER JOIN**, not before. The JOIN creates a temporary result set, and then WHERE filters that result set.
+
+**Example to illustrate:**
+
+```sql
+-- This query:
+SELECT users.*, orders.total
+FROM users
+INNER JOIN orders ON users.id = orders.user_id
+WHERE orders.total > 100;
+
+-- Execution order:
+-- 1. Start with users table
+-- 2. JOIN with orders table (create combined rows)
+-- 3. WHERE filters the combined result (orders.total > 100)
+-- 4. SELECT projects the final columns
+```
+
+**Practical Example with Active Record:**
+
+```ruby
+# Active Record query:
+User.joins(:orders).where(orders: { total: 100..Float::INFINITY })
+
+# SQL Generated:
+# SELECT "users".* FROM "users" 
+# INNER JOIN "orders" ON "orders"."user_id" = "users"."id" 
+# WHERE "orders"."total" >= 100
+```
+
+**Execution Order:**
+1. FROM `users` - Load users table
+2. INNER JOIN `orders` ON `orders.user_id = users.id` - Join orders
+3. WHERE `orders.total >= 100` - Filter joined result
+
+**Important Considerations:**
+
+**1. WHERE vs ON (in JOIN):**
+```sql
+-- Option 1: Filter in ON clause (during JOIN)
+SELECT users.*, orders.total
+FROM users
+LEFT JOIN orders ON users.id = orders.user_id AND orders.total > 100;
+
+-- Option 2: Filter in WHERE clause (after JOIN)
+SELECT users.*, orders.total
+FROM users
+LEFT JOIN orders ON users.id = orders.user_id
+WHERE orders.total > 100;
+```
+
+**Difference:**
+- **ON clause**: Filtering happens during the JOIN operation
+- **WHERE clause**: Filtering happens after JOIN is complete
+- For **INNER JOIN**, both produce the same result
+- For **LEFT/RIGHT JOIN**, they produce different results!
+
+**Example with LEFT JOIN:**
+
+```sql
+-- Using WHERE (filters after JOIN, may remove NULL rows):
+SELECT users.*, orders.total
+FROM users
+LEFT JOIN orders ON users.id = orders.user_id
+WHERE orders.total > 100;
+-- Users without orders > 100 are excluded
+
+-- Using ON (filters during JOIN, preserves all users):
+SELECT users.*, orders.total
+FROM users
+LEFT JOIN orders ON users.id = orders.user_id AND orders.total > 100;
+-- All users are included, but orders with total <= 100 show as NULL
+```
+
+**2. WHERE vs HAVING:**
+
+```sql
+SELECT department, COUNT(*) as emp_count
+FROM employees
+WHERE salary > 50000        -- Filter BEFORE grouping
+GROUP BY department
+HAVING COUNT(*) > 10;       -- Filter AFTER grouping
+```
+
+**Execution Order:**
+1. FROM `employees`
+2. WHERE `salary > 50000` - Filter individual rows
+3. GROUP BY `department` - Group filtered rows
+4. HAVING `COUNT(*) > 10` - Filter groups
+5. SELECT - Project final columns
+
+**3. Complete Example with All Clauses:**
+
+```sql
+SELECT department, AVG(salary) as avg_salary
+FROM employees
+INNER JOIN departments ON employees.department_id = departments.id
+WHERE employees.active = true
+GROUP BY department
+HAVING AVG(salary) > 60000
+ORDER BY avg_salary DESC
+LIMIT 10;
+```
+
+**Execution Order:**
+1. FROM `employees` - Load employees
+2. INNER JOIN `departments` ON `employees.department_id = departments.id` - Join departments
+3. WHERE `employees.active = true` - Filter joined result (only active employees)
+4. GROUP BY `department` - Group by department
+5. HAVING `AVG(salary) > 60000` - Filter groups (only departments with avg > 60000)
+6. SELECT `department, AVG(salary)` - Calculate and project columns
+7. ORDER BY `avg_salary DESC` - Sort results
+8. LIMIT `10` - Return top 10
+
+**Active Record Equivalent:**
+
+```ruby
+Employee.joins(:department)
+        .where(active: true)
+        .group('departments.name')
+        .having('AVG(employees.salary) > ?', 60000)
+        .select('departments.name as department, AVG(employees.salary) as avg_salary')
+        .order('avg_salary DESC')
+        .limit(10)
+```
+
+**Key Takeaways:**
+
+1. **WHERE executes AFTER JOIN** - JOIN creates the result set, then WHERE filters it
+2. **ON vs WHERE in JOINs**: For INNER JOIN they're equivalent, but for OUTER JOINs they behave differently
+3. **WHERE vs HAVING**: WHERE filters rows before grouping, HAVING filters groups after grouping
+4. Understanding execution order helps write efficient queries and avoid common mistakes
+5. Query optimizer may physically reorder operations, but the logical order must be maintained for correct results
+
+**Common Mistake:**
+
+```ruby
+# WRONG - Trying to filter on joined table before join exists
+User.where('orders.total > 100').joins(:orders)  # This still works, but conceptually wrong
+
+# CORRECT - Join first, then filter
+User.joins(:orders).where(orders: { total: 100..Float::INFINITY })
+```
+
+**Why it matters:**
+- Helps understand why certain queries don't work as expected
+- Important for query optimization
+- Critical for understanding LEFT/RIGHT JOIN behavior
+- Essential for debugging complex queries
+
+---
+
 ## Performance and Optimization
 
 ### <a id="n1-queries"></a>12. **N+1 query problem**
