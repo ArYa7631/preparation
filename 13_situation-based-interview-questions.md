@@ -1265,6 +1265,19 @@ git push origin feature/user-profile-image-upload
 - Explain what and why, not how
 - Keep first line under 50 characters
 
+### **How do tickets work in your project (epics, stories, sub-tasks, and story points)?**
+
+**Question**: How do you manage tickets in your project? Explain how epics, user stories, sub-tasks, and story points work together in your workflow.
+
+**Answer**:
+
+- **Epics**: Large business initiatives or features that are too big for a single sprint; they group multiple related user stories.
+- **User stories**: Smaller, user-focused pieces of work derived from epics, usually phrased like “As a user, I want… so that…”.
+- **Sub-tasks**: Technical breakdown of a user story into concrete tasks for developers, QA, DevOps, etc.
+- **Story points**: Relative measure of effort/complexity (not hours) based on scope, risk, and uncertainty; often using Fibonacci (1, 2, 3, 5, 8, 13…).
+- **Ticket lifecycle**: Tickets typically move through states like Backlog → Ready/Selected → In Progress → In Review → QA/Testing → Done/Released.
+- **Sprint planning & tracking**: The team uses story points for capacity planning, tracking velocity, and forecasting how many stories can be completed in a sprint.
+
 **8. Create Pull Request**
 
 **PR Creation Checklist:**

@@ -34,6 +34,22 @@ Now, most sales reps spend their whole day inside Salesforce — updating leads,
 Ecosystem makes this easier. It brings Highspot features right inside Salesforce. So while the rep is working in Salesforce, they can directly see the right presentations, product sheets, or training material from Highspot without switching tabs. It feels smooth, like everything is in one place.
 
 
+### How do you connect the Salesforce platform to Highspot via the Ecosystem project?
+
+**Question (as asked in interview)**: How can we add/connect the Salesforce platform to our Highspot account via the Ecosystem project?
+
+**Answer (short version)**:  
+In Ecosystem, we expose Salesforce as an integration that an admin can connect from Highspot. From the UI, the admin goes to the integrations/Ecosystem area, selects Salesforce, and completes an OAuth flow where they log in to Salesforce and approve the Highspot app. On the backend, the Ecosystem service stores the Salesforce org details and OAuth tokens securely and links them to the Highspot account. Once connected, Ecosystem syncs objects (like accounts, opportunities, and activities) and surfaces Highspot content inside Salesforce using embedded components, so reps can see and use Highspot content directly in Salesforce without leaving their normal workflow.
+
+**Answer (slightly more detailed breakdown)**:
+- **1. Discoverability & configuration in Highspot**: Salesforce appears as a configurable integration in the Ecosystem/Integrations UI. Admins can choose which Salesforce org to connect and what permissions/scopes are needed.
+- **2. OAuth-based connection**: When the admin clicks “Connect Salesforce”, we redirect them to Salesforce’s OAuth screen. After they approve, Salesforce sends an authorization code back to Ecosystem, which we exchange for access/refresh tokens and store securely.
+- **3. Account-level linkage**: Those tokens and org identifiers are associated with the specific Highspot account/tenant so that only that customer’s users can use the integration.
+- **4. Data sync & mappings**: Ecosystem configures which Salesforce objects/fields are synced (e.g., opportunities, activities) and how they map to Highspot entities (content engagement, pitches, etc.).
+- **5. Embedded experience in Salesforce**: Using Salesforce components (like Lightning components/Visualforce/Canvas), Ecosystem surfaces Highspot UI inside Salesforce pages so reps can search, preview, and attach Highspot content without leaving Salesforce.
+- **6. Ongoing maintenance**: Tokens are refreshed automatically, errors are logged/monitored, and admins can disconnect or reconfigure the integration from the Ecosystem settings screen.
+
+
 ### Most typical work on the highspot project for FrontEnd
 One of the most typical but also challenging frontend tasks I worked on was in the Ecosystem project. Earlier, in our project, most of the UI components we used—like cards, buttons, dropdowns, inputs—were either React’s default components or from some popular React-based libraries.
 
