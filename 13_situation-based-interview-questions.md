@@ -18,6 +18,7 @@
 - [Ruby on Rails Production Deployment: Step-by-Step Process](#ruby-on-rails-production-deployment-step-by-step-process)
 - [Highspot-Salesforce RESTful API Integration](#highspot-salesforce-restful-api-integration)
 - [Authentication & Authorization in Rails (CSRF, JWT, Devise)](#authentication-authorization-in-rails)
+- [Mini Ruby Application: Third-Party Joke API](#mini-ruby-application-third-party-joke-api)
 - [Questions to Ask the Interviewer](#questions-to-ask-the-interviewer)
 
 
@@ -2919,6 +2920,565 @@ Rails.application.config.session_store :cookie_store,
 - **Web Apps**: Use Devise + CSRF
 - **APIs**: Use JWT (skip CSRF)
 - **Hybrid**: Devise for web, JWT for API
+
+---
+
+### <a id="mini-ruby-application-third-party-joke-api"></a>**Mini Ruby Application: Third-Party Joke API**
+
+**Question**: Write a mini Ruby application that fetches jokes from a third-party API (like JokeAPI) and displays them. Focus on demonstrating your code structure, thinking process, and best practices.
+
+**Answer**:
+
+**Overview**: Build a simple CLI and web application that fetches jokes from an external API, with proper error handling, caching, and clean code structure.
+
+---
+
+**PART 1: PROJECT STRUCTURE & THINKING PROCESS**
+
+**Thinking Process:**
+1. **Requirements Analysis**:
+   - Fetch data from a third-party API
+   - Handle different joke types (programming, knock-knock, etc.)
+   - Implement error handling and retry logic
+   - Add caching to avoid repeated API calls
+   - Keep code clean and maintainable
+   - Make it testable
+
+2. **Architecture Decisions**:
+   - Separate concerns: API client, joke service, display logic
+   - Use dependency injection for flexibility
+   - Implement retry mechanism for resilience
+   - Cache responses to reduce API calls
+   - Add logging for debugging
+
+3. **Error Scenarios**:
+   - Network timeout
+   - Invalid API response
+   - Rate limiting
+   - Empty results
+
+---
+
+**PART 2: IMPLEMENTATION**
+
+**Project Structure:**
+```
+joke_app/
+├── lib/
+│   ├── joke_app.rb              # Main entry point
+│   ├── api/
+│   │   └── joke_client.rb       # API communication
+│   ├── services/
+│   │   └── joke_service.rb      # Business logic
+│   ├── models/
+│   │   └── joke.rb              # Joke data model
+│   └── utils/
+│       ├── cache.rb             # Caching logic
+│       ├── logger.rb            # Logging
+│       └── retry_handler.rb     # Retry mechanism
+├── spec/
+│   ├── api/
+│   │   └── joke_client_spec.rb
+│   ├── services/
+│   │   └── joke_service_spec.rb
+│   └── integration_spec.rb
+├── bin/
+│   └── joke_cli                 # CLI executable
+├── Gemfile
+└── README.md
+```
+
+---
+
+**1. Gemfile**
+
+```ruby
+# Gemfile
+source 'https://rubygems.org'
+
+gem 'httparty', '~> 0.21.0'        # HTTP client
+gem 'json', '~> 2.6.0'             # JSON parsing
+gem 'dotenv', '~> 2.8.0'           # Environment variables
+gem 'sinatra', '~> 2.3.0'          # Web framework (optional)
+gem 'redis', '~> 5.0.0'            # For advanced caching (optional)
+
+group :development, :test do
+  gem 'rspec', '~> 3.12.0'         # Testing
+  gem 'webmock', '~> 3.18.0'       # Mock HTTP requests
+  gem 'vcr', '~> 6.1.0'            # Record/replay HTTP interactions
+  gem 'rubocop', '~> 1.48.0'       # Linting
+end
+```
+
+---
+
+**2. API Client Layer** (lib/api/joke_client.rb)
+
+```ruby
+require 'httparty'
+
+module JokeApp
+  module API
+    class JokeClient
+      include HTTParty
+      
+      BASE_URL = 'https://v2.jokeapi.dev'
+      DEFAULT_TIMEOUT = 5
+      MAX_RETRIES = 3
+      
+      def initialize(logger = nil, timeout = DEFAULT_TIMEOUT)
+        @logger = logger || Logger.new(STDOUT)
+        @timeout = timeout
+      end
+      
+      # Fetch joke by category with retry logic
+      def fetch_joke(category = 'Any', safe_mode = true)
+        retry_with_backoff do
+          @logger.info "Fetching joke from category: #{category}"
+          
+          response = self.class.get(
+            "#{BASE_URL}/joke/#{category}",
+            query: { safe_mode: safe_mode },
+            timeout: @timeout,
+            headers: { 'User-Agent' => 'JokeApp/1.0' }
+          )
+          
+          handle_response(response)
+        end
+      rescue StandardError => e
+        @logger.error "Failed to fetch joke: #{e.message}"
+        raise
+      end
+      
+      # Fetch multiple jokes
+      def fetch_multiple_jokes(category = 'Any', count = 3, safe_mode = true)
+        count.times.map do
+          fetch_joke(category, safe_mode)
+        rescue StandardError => e
+          @logger.warn "Failed to fetch joke ##{_1}: #{e.message}"
+          nil
+        end.compact
+      end
+      
+      # Get available joke types
+      def fetch_joke_types
+        response = self.class.get("#{BASE_URL}/types")
+        handle_response(response)
+      end
+      
+      private
+      
+      def handle_response(response)
+        case response.code
+        when 200
+          JSON.parse(response.body)
+        when 400
+          raise BadRequestError, "Invalid parameters"
+        when 429
+          raise RateLimitError, "Rate limit exceeded"
+        when 500..599
+          raise ServerError, "API server error"
+        else
+          raise UnknownError, "Unexpected response code: #{response.code}"
+        end
+      end
+      
+      def retry_with_backoff(attempt = 1)
+        yield
+      rescue RateLimitError, ServerError => e
+        if attempt < MAX_RETRIES
+          wait_time = 2 ** (attempt - 1)  # Exponential backoff: 1s, 2s, 4s
+          @logger.warn "Retrying in #{wait_time}s (attempt #{attempt}/#{MAX_RETRIES})"
+          sleep(wait_time)
+          retry_with_backoff(attempt + 1)
+        else
+          raise
+        end
+      end
+    end
+    
+    # Custom Exceptions
+    class JokeAPIError < StandardError; end
+    class BadRequestError < JokeAPIError; end
+    class RateLimitError < JokeAPIError; end
+    class ServerError < JokeAPIError; end
+    class UnknownError < JokeAPIError; end
+  end
+end
+```
+
+---
+
+**3. Data Model** (lib/models/joke.rb)
+
+```ruby
+module JokeApp
+  module Models
+    class Joke
+      attr_reader :id, :type, :category, :setup, :delivery, :joke, :flags, :safe
+
+      def initialize(api_response)
+        @id = api_response['id']
+        @type = api_response['type']
+        @category = api_response['category']
+        @setup = api_response['setup']
+        @delivery = api_response['delivery']
+        @joke = api_response['joke']
+        @flags = api_response['flags'] || {}
+        @safe = api_response['safe']
+      end
+
+      # Determine if joke is single-line or two-part
+      def single_line?
+        @type == 'single'
+      end
+
+      def two_part?
+        @type == 'twopart'
+      end
+
+      # Get formatted joke text
+      def formatted_joke
+        if single_line?
+          @joke
+        else
+          "#{@setup}\n#{@delivery}"
+        end
+      end
+
+      # Check joke safety
+      def explicit?
+        @flags&.[]('explicit') || false
+      end
+
+      def offensive?
+        @flags&.[]('offensive') || false
+      end
+
+      # Pretty print
+      def to_s
+        <<~JOKE
+          [#{@category.upcase}]
+          #{formatted_joke}
+          (ID: #{@id})
+        JOKE
+      end
+    end
+  end
+end
+```
+
+---
+
+**4. Caching Layer** (lib/utils/cache.rb)
+
+```ruby
+module JokeApp
+  module Utils
+    class Cache
+      def initialize(ttl = 3600)  # 1 hour default
+        @cache = {}
+        @ttl = ttl
+      end
+
+      def get(key)
+        entry = @cache[key]
+        return nil if entry.nil?
+        
+        if Time.now > entry[:expires_at]
+          @cache.delete(key)
+          return nil
+        end
+        
+        entry[:value]
+      end
+
+      def set(key, value)
+        @cache[key] = {
+          value: value,
+          expires_at: Time.now + @ttl
+        }
+      end
+
+      def delete(key)
+        @cache.delete(key)
+      end
+
+      def clear
+        @cache.clear
+      end
+
+      def exists?(key)
+        !get(key).nil?
+      end
+    end
+  end
+end
+```
+
+---
+
+**5. Service Layer** (lib/services/joke_service.rb)
+
+```ruby
+module JokeApp
+  module Services
+    class JokeService
+      def initialize(api_client = nil, cache = nil, logger = nil)
+        @api_client = api_client || API::JokeClient.new
+        @cache = cache || Utils::Cache.new(3600)  # 1 hour TTL
+        @logger = logger || Logger.new(STDOUT)
+      end
+
+      # Get a single joke with caching
+      def get_joke(category = 'Any', safe_mode = true)
+        cache_key = "joke:#{category}:#{safe_mode}"
+        
+        cached_joke = @cache.get(cache_key)
+        return cached_joke if cached_joke
+
+        begin
+          response = @api_client.fetch_joke(category, safe_mode)
+          joke = Models::Joke.new(response)
+          @cache.set(cache_key, joke)
+          joke
+        rescue API::JokeAPIError => e
+          @logger.error "Service error: #{e.message}"
+          nil
+        end
+      end
+
+      # Get multiple jokes
+      def get_multiple_jokes(category = 'Any', count = 3, safe_mode = true)
+        @logger.info "Fetching #{count} jokes from #{category}"
+        @api_client.fetch_multiple_jokes(category, count, safe_mode)
+          .map { |response| Models::Joke.new(response) }
+      rescue API::JokeAPIError => e
+        @logger.error "Failed to fetch multiple jokes: #{e.message}"
+        []
+      end
+
+      # Clear cache
+      def clear_cache
+        @cache.clear
+        @logger.info "Cache cleared"
+      end
+
+      # Get cache statistics
+      def cache_stats
+        { cache_ttl: @cache.instance_variable_get(:@ttl) }
+      end
+    end
+  end
+end
+```
+
+---
+
+**6. Logger Utility** (lib/utils/logger.rb)
+
+```ruby
+module JokeApp
+  module Utils
+    class Logger
+      attr_accessor :level
+
+      LEVELS = { debug: 0, info: 1, warn: 2, error: 3, fatal: 4 }.freeze
+
+      def initialize(output = STDOUT, level = :info)
+        @output = output
+        @level = level
+      end
+
+      [:debug, :info, :warn, :error, :fatal].each do |level|
+        define_method(level) do |message|
+          log(level, message)
+        end
+      end
+
+      private
+
+      def log(level, message)
+        return if LEVELS[level] < LEVELS[@level]
+
+        timestamp = Time.now.strftime("%Y-%m-%d %H:%M:%S")
+        log_message = "[#{timestamp}] [#{level.upcase}] #{message}"
+        @output.puts log_message
+      end
+    end
+  end
+end
+```
+
+---
+
+**7. CLI Interface** (bin/joke_cli)
+
+```ruby
+#!/usr/bin/env ruby
+
+require_relative '../lib/joke_app'
+
+# Setup
+logger = JokeApp::Utils::Logger.new(STDOUT, :info)
+api_client = JokeApp::API::JokeClient.new(logger)
+service = JokeApp::Services::JokeService.new(api_client, nil, logger)
+
+# Parse arguments
+category = ARGV[0] || 'Any'
+count = (ARGV[1] || '1').to_i
+
+puts "\n🤣 Joke Fetcher 🤣"
+puts "=" * 50
+
+if count == 1
+  joke = service.get_joke(category)
+  puts joke if joke
+else
+  jokes = service.get_multiple_jokes(category, count)
+  jokes.each_with_index do |joke, index|
+    puts "\n#{index + 1}. #{joke}"
+  end
+end
+
+puts "=" * 50
+```
+
+---
+
+**8. Spec Tests** (spec/services/joke_service_spec.rb)
+
+```ruby
+require 'rspec'
+require_relative '../../lib/joke_app'
+
+describe JokeApp::Services::JokeService do
+  let(:mock_api_response) do
+    {
+      'id' => 1,
+      'type' => 'single',
+      'category' => 'Programming',
+      'joke' => 'Why do programmers love nature? Because it has no bugs!',
+      'safe' => true
+    }
+  end
+
+  let(:mock_client) { instance_double(JokeApp::API::JokeClient) }
+  let(:service) { described_class.new(mock_client) }
+
+  describe '#get_joke' do
+    it 'fetches and caches a joke' do
+      allow(mock_client).to receive(:fetch_joke).and_return(mock_api_response)
+
+      joke1 = service.get_joke('Programming')
+      joke2 = service.get_joke('Programming')
+
+      expect(joke1.joke).to eq('Why do programmers love nature? Because it has no bugs!')
+      expect(mock_client).to have_received(:fetch_joke).once  # Cached, not called twice
+    end
+
+    it 'returns nil on API error' do
+      allow(mock_client).to receive(:fetch_joke)
+        .and_raise(JokeApp::API::JokeAPIError, 'API Error')
+
+      joke = service.get_joke('Programming')
+      expect(joke).to be_nil
+    end
+  end
+
+  describe '#get_multiple_jokes' do
+    it 'fetches multiple jokes' do
+      allow(mock_client).to receive(:fetch_multiple_jokes)
+        .and_return([mock_api_response, mock_api_response])
+
+      jokes = service.get_multiple_jokes('Programming', 2)
+      expect(jokes.count).to eq(2)
+    end
+  end
+end
+```
+
+---
+
+**PART 3: KEY DESIGN PATTERNS & THINKING PROCESS**
+
+**1. Separation of Concerns**
+- ✅ **API Client**: Only handles HTTP communication
+- ✅ **Service Layer**: Business logic and caching
+- ✅ **Models**: Data representation
+- ✅ **Utils**: Cross-cutting concerns (logging, caching)
+
+**2. Error Handling Strategy**
+- ✅ **Custom Exceptions**: Clear error hierarchy
+- ✅ **Retry Logic**: Exponential backoff for transient failures
+- ✅ **Graceful Degradation**: Return nil or empty array on failure
+- ✅ **Logging**: Track all operations for debugging
+
+**3. Caching Strategy**
+- ✅ **TTL-based Cache**: Prevent stale data
+- ✅ **Cache Keys**: Include all relevant parameters
+- ✅ **Cache Clearing**: Ability to invalidate cache
+
+**4. Testing**
+- ✅ **Mocking**: Mock external API calls
+- ✅ **Isolation**: Test each layer independently
+- ✅ **Integration Tests**: Test entire flow together
+
+**5. Code Quality**
+- ✅ **SOLID Principles**: Single responsibility, dependency injection
+- ✅ **DRY**: Don't repeat yourself (reusable methods)
+- ✅ **Naming**: Clear, descriptive names
+- ✅ **Documentation**: Inline comments for complex logic
+
+---
+
+**PART 4: HOW TO RUN THE APPLICATION**
+
+```bash
+# Setup
+cd joke_app
+bundle install
+
+# Run CLI
+ruby bin/joke_cli Programming        # Fetch 1 joke from Programming category
+ruby bin/joke_cli Any 5              # Fetch 5 random jokes
+
+# Run Tests
+rspec
+
+# Run Linter
+rubocop
+
+# In a Rails app (optional)
+gem 'joke_app'
+# Use in controller:
+# @joke = JokeApp::Services::JokeService.new.get_joke('Programming')
+```
+
+---
+
+**PART 5: INTERVIEW DISCUSSION POINTS**
+
+**What Would You Improve?**
+1. ✅ Implement Redis caching for distributed systems
+2. ✅ Add rate limiting on the client side
+3. ✅ Implement circuit breaker pattern for API resilience
+4. ✅ Add metrics/monitoring for API calls
+5. ✅ Implement async requests using Sidekiq
+6. ✅ Add database layer to persist jokes
+7. ✅ Create API endpoints (Sinatra/Rails)
+
+**Why These Decisions?**
+- **Dependency Injection**: Easier to test and swap implementations
+- **Custom Exceptions**: Caller knows exactly what went wrong
+- **Retry Logic**: Handles transient network failures
+- **Caching**: Reduces API calls and improves performance
+- **Layered Architecture**: Easy to extend and maintain
+
+**Trade-offs Made:**
+- **Simplicity vs. Features**: Started simple, can add complexity later
+- **Caching Duration**: 1 hour is a balance between freshness and performance
+- **Retry Attempts**: 3 attempts with exponential backoff works for most cases
 
 ---
 
