@@ -502,6 +502,46 @@ date.strftime('%Y-%m-%d')      # Format date
 
 ## Regular Expression Methods
 
+### <a id="daily-date-methods"></a>**Daily Date/Time Methods (Common Usage)**
+
+**Question:** Which Ruby `Date`/`Time` methods are most useful for daily tasks (formatting, parsing, arithmetic, timezones), and how do you use them?
+
+**Short Answer:** Use `Time.now` / `Date.today` for current time/date, `Time.parse` / `Date.parse` to convert strings, `strftime` to format, arithmetic (`+`, `-`) for adding/subtracting days/seconds, and Rails `ActiveSupport` helpers like `1.day.ago`, `2.weeks.from_now`, `Time.current`, `Date.current`, `beginning_of_day` / `end_of_day` for common app needs. Prefer `Time.zone` / `Time.current` in Rails to respect app timezone.
+
+Common examples:
+```ruby
+Time.now                # => current system time
+Date.today              # => current date
+Time.parse('2023-02-15')
+Date.parse('2023-02-15')
+time.strftime('%d %b %Y %H:%M')  # => "15 Feb 2023 14:30"
+
+# Arithmetic
+Date.today + 7          # => one week from today
+Time.now + 3600         # => +1 hour (seconds)
+
+# ActiveSupport (Rails)
+1.day.ago               # => 24 hours ago
+2.weeks.from_now        # => date/time two weeks ahead
+Time.current            # => uses Rails.time_zone
+Date.current
+Time.zone.parse('2023-02-15 10:00')
+
+# Day boundaries
+Date.today.beginning_of_day  # => 2023-02-15 00:00:00
+Date.today.end_of_day        # => 2023-02-15 23:59:59
+
+# Age calculation
+dob = Date.parse('1990-05-01')
+age = ((Date.today - dob).to_i / 365)
+```
+
+Tips:
+- Use `Time.current` / `Date.current` in Rails to handle timezones consistently.
+- Use `strftime` for human-friendly formats and `iso8601` for API payloads.
+- For parsing user input, prefer `Date.strptime`/`Time.strptime` with a known format to avoid ambiguity.
+- Beware of daylight saving changes when doing timezone-sensitive arithmetic; use `ActiveSupport::TimeWithZone`.
+
 ### Pattern Matching
 
 ```ruby

@@ -482,6 +482,7 @@
 - [render :unauthorized and return unless authorized?](06_core-concepts-part-2.md#L2843)
 - [render :unauthorized unless authorized?](06_core-concepts-part-2.md#L2852)
 - [before_action :authorize_post, only: [:edit, :update, :destroy], if: :user_signed_in?](06_core-concepts-part-2.md#L2919)
+ - [<a id="threads-and-gil"></a>**Threads and GIL (GVL)**](06_core-concepts-part-2.md#L734)
 
 ## 07_Core Concepts Part 3
 
@@ -586,6 +587,7 @@
 - [Routing & Controllers](10_ruby-on-rails-interview-questions.md#L732)
 - [<a id="explain-rails-routing"></a>**Explain Rails routing**](10_ruby-on-rails-interview-questions.md#L734)
 - [<a id="what-are-strong-parameters"></a>**What are strong parameters?**](10_ruby-on-rails-interview-questions.md#L847)
+- [<a id="what-are-filters-in-rails"></a>**What are filters in Rails?**](10_ruby-on-rails-interview-questions.md#L903)
 - [Advanced Topics](10_ruby-on-rails-interview-questions.md#L939)
 - [<a id="what-are-rails-concerns"></a>**What are Rails concerns?**](10_ruby-on-rails-interview-questions.md#L941)
 - [<a id="how-does-caching-work-in-ruby-on-rails"></a>**How does caching work in Ruby on Rails?**](10_ruby-on-rails-interview-questions.md#L1041)
@@ -712,6 +714,7 @@
 - [1. Garbage Collection](12_ruby-rules-and-regulations.md#L394)
 - [2. Object References](12_ruby-rules-and-regulations.md#L399)
 - [3. Object Duplication](12_ruby-rules-and-regulations.md#L410)
+ - [dup vs deep_dup](12_ruby-rules-and-regulations.md#dup-vs-deep_dup)
 - [Best Practices and Conventions](12_ruby-rules-and-regulations.md#L419)
 - [1. Code Style](12_ruby-rules-and-regulations.md#L421)
 - [2. Method Design](12_ruby-rules-and-regulations.md#L427)
@@ -1038,6 +1041,7 @@
 - [Time and Date Methods](ruby-useful-methods-for-problem-solving.md#L460)
 - [Time Operations](ruby-useful-methods-for-problem-solving.md#L462)
 - [Date Operations](ruby-useful-methods-for-problem-solving.md#L484)
+ - [Daily Date/Time Methods (Common Usage)](ruby-useful-methods-for-problem-solving.md#daily-date-methods)
 - [Regular Expression Methods](ruby-useful-methods-for-problem-solving.md#L503)
 - [Pattern Matching](ruby-useful-methods-for-problem-solving.md#L505)
 - [Regex Utilities](ruby-useful-methods-for-problem-solving.md#L526)

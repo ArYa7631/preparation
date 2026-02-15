@@ -701,6 +701,28 @@ port ENV.fetch("PORT") { 3000 }
 environment ENV.fetch("RAILS_ENV") { "development" }
 ```
 
+### <a id="threads-and-gil"></a>**Threads and GIL (GVL) in Ruby**
+
+**Question:** Explain Ruby threads and the Global Interpreter Lock (GIL/GVL).
+
+**Short Answer:** Ruby threads provide concurrency, but MRI (CRuby) has a Global VM Lock (GVL) that prevents multiple Ruby threads from executing Ruby bytecode simultaneously on multiple CPU cores. This means threads in MRI are great for I/O-bound work but won't give CPU-bound parallelism. JRuby and TruffleRuby use native OS threads and can run Ruby code in parallel.
+
+Key points:
+- **MRI (CRuby)**: Has GVL — limits parallel execution of Ruby code; use threads for I/O concurrency, use multiple processes (Puma workers) or native extensions for CPU parallelism.
+- **JRuby / TruffleRuby**: Native threads allow real parallelism on multiple cores.
+- **Practical advice**: For web apps use Puma workers × threads (workers = processes for CPU-parallelism, threads = concurrency for I/O). For heavy CPU tasks use background processing with multiple processes or JRuby/native code.
+
+Example:
+```ruby
+# I/O-bound: threads help (MRI)
+threads = 10.times.map { Thread.new { Net::HTTP.get(URI("https://example.com")) } }
+threads.each(&:join)
+
+# CPU-bound: MRI threads won't speed up due to GVL — use processes
+fork { heavy_cpu_work }  # or use multiple Puma workers
+```
+
+
 ### <a id="rails-request-response-cycle"></a>**Rails Request-Response Cycle**
 
 **Q: Explain the Rails request-response cycle in detail.**

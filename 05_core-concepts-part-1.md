@@ -4,6 +4,7 @@
 
 ### Additional Ruby & Rails Concepts
 - [Callback VS Observer](#callback-vs-observer)
+- [Filters in Rails](#filters-in-rails)
 - [Resource VS Resources](#resource-vs-resources)
 - [Member VS Collection](#member-vs-collection)
 - [Mass-assignment](#mass-assignment)
@@ -138,6 +139,30 @@ config.active_record.observers = :user_observer
 - Keep callbacks simple and focused
 - Avoid callbacks that depend on external services
 - Consider using `after_commit` instead of `after_save` for reliability
+
+### <a id="filters-in-rails"></a>**Filters in Rails**
+
+**Question:** What are filters in Rails and when would you use `before_action`, `after_action`, or `around_action`?
+
+**Short Answer:** Filters are controller-level callbacks used to run shared logic around controller actions. Use `before_action` to enforce authentication or set common data, `after_action` for logging or cleanup, and `around_action` when you need to wrap an action (e.g., timing or transaction handling).
+
+Example:
+```ruby
+class ApplicationController < ActionController::Base
+  before_action :set_locale
+  after_action :log_response
+
+  private
+
+  def set_locale
+    I18n.locale = params[:locale] || I18n.default_locale
+  end
+
+  def log_response
+    Rails.logger.info("Response status: #{response.status}")
+  end
+end
+```
 
 ### <a id="resource-vs-resources"></a>**Resource VS Resources**
 

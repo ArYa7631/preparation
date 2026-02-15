@@ -416,6 +416,28 @@ b = a.dup
 b = Marshal.load(Marshal.dump(a))
 ```
 
+### <a id="dup-vs-deep_dup"></a>**`dup` vs `deep_dup` in Ruby**
+
+**Question:** What is the difference between `dup` and `deep_dup` (or deep copy) in Ruby, and when would you use each?
+
+**Short Answer:** `dup` (and `clone`) create a shallow copy — they copy the object itself but keep references to nested mutable objects. A deep copy duplicates nested objects as well so modifying the copy won't affect the original. Rails provides `deep_dup` via `ActiveSupport` for nested hashes/arrays; in pure Ruby you can use `Marshal.load(Marshal.dump(obj))` or implement a recursive duplication.
+
+Example (shallow vs deep):
+```ruby
+original = { users: [{ name: 'Alice' }] }
+shallow = original.dup
+shallow[:users][0][:name] = 'Bob'
+puts original[:users][0][:name]  # => 'Bob' (modified)
+
+# Using ActiveSupport in Rails
+deep = original.deep_dup
+deep[:users][0][:name] = 'Carol'
+puts original[:users][0][:name]  # => 'Bob' (unchanged by deep dup)
+
+# Pure Ruby deep copy (caveats: only works for Marshal-able objects)
+deep2 = Marshal.load(Marshal.dump(original))
+```
+
 ## Best Practices and Conventions
 
 ### 1. Code Style
@@ -486,6 +508,33 @@ end
 # Different objects
 hash[:key]   # Symbol key
 hash["key"]  # String key
+```
+
+**Question:** What's the difference between `String` and `Symbol` in Ruby, and when should you use each?
+
+**Short Answer:** `String` is mutable and used for textual data; `Symbol` is an immutable, interned identifier used as lightweight keys or constants. Symbols are memory- and performance-efficient for repeated identifiers, while strings are for data that may change or require manipulation.
+
+Key points:
+- **Mutability:** Strings can be modified (`gsub!`, `<<`); symbols cannot be changed.
+- **Identity:** The same symbol is the same object (`:foo.object_id` is constant), whereas identical string literals may be different objects unless frozen.
+- **Use as keys:** Prefer symbols for hash keys when keys are identifiers; use strings when keys are dynamic or come from user input.
+- **Memory:** Creating many unique symbols at runtime can bloat symbol table (modern Ruby versions GC symbols created dynamically, but caution is still advised).
+
+Examples:
+```ruby
+hash = { foo: 1 }
+hash[:foo]    # => 1
+hash['foo']   # => nil
+
+puts :foo.object_id
+puts :foo.object_id  # same id
+
+puts "foo".object_id
+puts "foo".object_id  # usually different ids (new string objects)
+
+# Converting
+"key".to_sym   # => :key
+:key.to_s        # => "key"
 ```
 
 ### 4. Nil Handling

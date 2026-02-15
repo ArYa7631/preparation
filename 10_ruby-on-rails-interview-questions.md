@@ -16,6 +16,7 @@
 ### Routing & Controllers
 - [Explain Rails routing](#explain-rails-routing)
 - [What are strong parameters?](#what-are-strong-parameters)
+ - [What are filters in Rails?](#what-are-filters-in-rails)
 
 ### Advanced Topics
 - [What are Rails concerns?](#what-are-rails-concerns)
@@ -896,6 +897,31 @@ end
 ```ruby
 def user_params
   params.require(:user)  # Raises error if :user key is missing
+end
+```
+
+### <a id="what-are-filters-in-rails"></a>**What are filters in Rails?**
+
+Filters (controller filters) are callbacks that run around controller actions to run shared logic. Common examples are `before_action`, `after_action`, and `around_action`.
+
+Use cases:
+- Authentication and authorization
+- Setting or loading common instance variables
+- Request logging or instrumentation
+
+Example:
+```ruby
+class ArticlesController < ApplicationController
+  before_action :authenticate_user!
+  before_action :set_article, only: [:show, :edit, :update, :destroy]
+
+  def show; end
+
+  private
+
+  def set_article
+    @article = Article.find(params[:id])
+  end
 end
 ```
 
