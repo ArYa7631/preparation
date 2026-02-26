@@ -11,6 +11,7 @@
 - [Eager loading VS Lazy loading](#eager-loading-vs-lazy-loading)
 - [Pure Object Oriented why?](#pure-object-oriented)
 - [Constructor in Ruby](#constructor-in-ruby)
+- [Truthy and Falsy Values](#truthy-and-falsy-values)
 - [Include VS Require](#include-vs-require)
 - [Include VS Extends](#include-vs-extends)
 - [Require VS Load](#require-vs-load)
@@ -1273,6 +1274,97 @@ end
 user = User.new(name: "John", email: "john@example.com", age: 25)
 ```
 
+### <a id="truthy-and-falsy-values"></a>**Ruby Truthy and Falsy Values**
+
+**Question:** What values are considered truthy or falsy in Ruby and how does that impact control flow in conditional statements?
+
+**Answer:** In Ruby, only `false` and `nil` are treated as **falsy**; everything else evaluates as **truthy** (including `0`, `""`, empty arrays/hashes, and even objects). This influences `if`, `unless`, loops, logical operators, and guard clauses—developers can rely on Ruby’s minimal falsy set for concise conditionals. Understanding this is critical for writing correct predicates and avoiding unexpected behavior.
+
+**Common predicate methods used in Rails that rely on truthiness:**
+
+- `object.nil?` → returns `true` only for `nil`.
+- `object.present?` → Rails helper; inverse of `blank?`; returns `false` for `nil`, `false`, empty strings/arrays/hashes.
+- `object.blank?` → `true` for `nil`, `false`, "", `[]`, `{}` and whitespace-only strings.
+- `object.empty?` → defined on collections/strings; `true` when size is zero, but raises on `nil`.
+- `object.persisted?` → ActiveRecord; returns `true` if record has been saved to the database (i.e. not a new record). It is effectively `!new_record?` and is truthy only for persisted instances.
+- `object.new_record?` → opposite of `persisted?`.
+- `object.changed?` / `object.saved_change_to_attribute?` → return booleans depending on state changes.
+
+> **Note:** These methods return actual Boolean values (`true` or `false`), but they are often used in conditionals where any *truthy* result will pass. For example, `if user.persisted?` is equivalent to checking `if user && !user.new_record?`.
+
+**Examples:**
+
+```ruby
+# plain Ruby
+if 0
+  puts "0 is truthy"      # prints
+end
+
+if ""
+  puts "empty string is truthy"  # prints
+end
+
+if nil
+  puts "won't run"
+end
+
+# Rails helpers
+user = User.new
+puts user.persisted?    # => false
+puts user.new_record?   # => true
+
+notes = []
+puts notes.empty?        # => true
+puts notes.blank?        # => true
+puts notes.present?      # => false
+
+text = "   "
+puts text.blank?         # => true (whitespace counts as blank)
+puts text.present?       # => false
+
+# guard clause
+def process(user)
+  return unless user.present? && user.persisted?
+  # do something with saved user
+end
+```
+
+Knowing these predicates and how Ruby evaluates conditionals helps avoid pitfalls like assuming `0` or `""` is falsy or using `empty?` on `nil` without guards.
+
+**Basic truthiness/falsiness checks and boolean coercion:**
+
+```ruby
+value.nil?      # true if value is nil
+value == false  # explicit false check
+!!value         # double negation to coerce to true/false
+
+# examples
+nil.nil?        # => true
+false.nil?      # => false
+0.nil?          # => false
+
+if 0
+  puts "truthy"  # runs (0 is truthy!)
+end
+
+# coercion
+puts !!nil        # => false
+puts !!false      # => false
+puts !!0          # => true
+puts !!""        # => true
+```
+
+These simple checks are handy when writing conditionals outside of Rails helpers or when you need an actual Boolean value rather than relying on truthiness.
+
+**Additional tips:**
+
+- Prefer guard clauses (`return unless user`) to keep methods clean; the truthiness rules make them concise.
+- Use `unless` sparingly (`unless value.nil?` reads better than `if !value`) and never combine `unless` with `else` — it becomes confusing.
+- The `defined?(variable)` operator can help avoid `NameError` when checking for existence, though it returns a string rather than a boolean.
+- Avoid double negation (`!!`) in production code unless you're intentionally converting to a boolean; Rubyists often accept truthy/falsy results directly.
+- Remember that methods like `empty?` raise on `nil`, so combine with safe navigation (`value&.empty?`) or `blank?` when in Rails.
+
+These conventions ensure your code stays readable and aligned with Ruby idioms.
 ### <a id="include-vs-require"></a>**Include VS Require**
 
 **Theoretical Understanding:**

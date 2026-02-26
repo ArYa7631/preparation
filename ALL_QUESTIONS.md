@@ -418,6 +418,7 @@
 - [<a id="eager-loading-vs-lazy-loading"></a>**Eager loading VS Lazy loading**](05_core-concepts-part-1.md#L538)
 - [<a id="pure-object-oriented"></a>**Pure Object Oriented why?**](05_core-concepts-part-1.md#L726)
 - [<a id="constructor-in-ruby"></a>**Constructor in Ruby**](05_core-concepts-part-1.md#L945)
+- [<a id="truthy-and-falsy-values"></a>**Truthy and Falsy Values**](05_core-concepts-part-1.md#L1277)
 - [raise ArgumentError, "Name can't be nil" if name.nil?](05_core-concepts-part-1.md#L1093)
 - [<a id="include-vs-require"></a>**Include VS Require**](05_core-concepts-part-1.md#L1251)
 - [<a id="include-vs-extends"></a>**Include VS Extends**](05_core-concepts-part-1.md#L1564)
